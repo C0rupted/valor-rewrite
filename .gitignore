@@ -1,0 +1,20 @@
+# Personal notes
+notes.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Env config
+.env
+
+# OS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
