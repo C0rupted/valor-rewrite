@@ -30,6 +30,7 @@ class ValorBot(commands.Bot):
     async def load_extensions(self):
         extensions = [
             "core.errors",
+            "cogs.profile",
             # Add slash command cogs here:
             # "cogs.guild",
             # "cogs.profile",
