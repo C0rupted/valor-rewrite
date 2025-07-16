@@ -1,5 +1,5 @@
 import aiomysql
-from core.config import settings
+from core.config import config
 import logging
 
 class Database:
@@ -9,11 +9,11 @@ class Database:
     async def init_pool(cls):
         logging.info("🔌 Connecting to MySQL...")
         cls._pool = await aiomysql.create_pool(
-            host=settings.DB_HOST,
-            port=settings.DB_PORT,
-            user=settings.DB_USER,
-            password=settings.DB_PASSWORD,
-            db=settings.DB_NAME,
+            host=config.DB_HOST,
+            port=config.DB_PORT,
+            user=config.DB_USER,
+            password=config.DB_PASSWORD,
+            db=config.DB_NAME,
             autocommit=True,
             minsize=1,
             maxsize=10,

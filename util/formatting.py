@@ -1,4 +1,6 @@
-def human_format(self, number):
+import math
+
+def human_format(number):
     units = ['', 'K', 'M', 'B', 'T']
     k = 1000.0
     if not number:

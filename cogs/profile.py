@@ -7,7 +7,7 @@ from database.connection import Database
 from util.embeds import ErrorEmbed
 from util.formatting import human_format
 from util.uuid import get_uuid
-from util.guild_ranks import get_war_rank, get_xp_rank
+from util.ranks import get_war_rank, get_xp_rank
 
 class Profile(commands.Cog):
     def __init__(self, bot):
@@ -31,7 +31,7 @@ class Profile(commands.Cog):
         # Draw username and rank badge
         offset = 0
         if data.get("supportRank"):
-            rank_badge_path = f"assets/badges/{data['supportRank']}.png"
+            rank_badge_path = f"assets/icons/ranks/{data['supportRank']}.png"
             if os.path.exists(rank_badge_path):
                 rank_badge = Image.open(rank_badge_path)
                 img.paste(rank_badge, (21, 25), rank_badge)
