@@ -10,7 +10,7 @@ from database.connection import Database
 
 class ValorBot(commands.Bot):
     def __init__(self):
-        intents = discord.Intents.default()
+        intents = discord.Intents.all()
         intents.guilds = True
         intents.members = True
 
@@ -30,30 +30,29 @@ class ValorBot(commands.Bot):
         extensions = [
             "core.errors",
             "cogs.profile",
-            "cogs.uniform"
-            # Add slash command cogs here:
-            # "cogs.guild",
-            # "cogs.profile",
+            "cogs.uniform",
         ]
+
         for ext in extensions:
             try:
                 await self.load_extension(ext)
-                logging.info(f"✅ Loaded extension: {ext}")
+                logging.info(f"Loaded extension: {ext}")
             except Exception as e:
-                logging.error(f"❌ Failed to load extension {ext}: {e}")
+                logging.error(f"Failed to load extension {ext}: {e}")
 
     async def on_ready(self):
-        logging.info(f"✅ Logged in as {self.user} (ID: {self.user.id})")
+        logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
 
         for guild_id in config.ANO_COMMANDS_GUILD_IDS:
             guild = discord.Object(id=int(guild_id))
             try:
                 await self.tree.sync(guild=guild)
-                logging.info(f"✅ Synced commands to guild {guild.id}")
+                logging.info(f"Synced commands to guild {guild.id}")
             except discord.Forbidden:
-                logging.warning(f"⚠️ Missing access to sync commands in guild {guild.id}")
-        logging.info("🌐 Synced slash commands")
-        logging.info("✅ Bot is ready")
+                logging.warning(f"Missing access to sync commands in guild {guild.id}")
+
+        logging.info("Successfully synced all slash commands")
+        logging.info("Bot is ready")
 
     async def close(self):
         await Database.close_pool()
@@ -62,5 +61,6 @@ class ValorBot(commands.Bot):
 
 def run_bot():
     setup_logging()
+
     bot = ValorBot()
-    bot.run(config.TOKEN)
+    bot.run(config.TOKEN, log_handler=None)

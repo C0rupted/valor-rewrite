@@ -7,7 +7,7 @@ class Database:
 
     @classmethod
     async def init_pool(cls):
-        logging.info("🔌 Connecting to MySQL...")
+        logging.info("Connecting to MySQL...")
         cls._pool = await aiomysql.create_pool(
             host=config.DB_HOST,
             port=config.DB_PORT,
@@ -18,14 +18,14 @@ class Database:
             minsize=1,
             maxsize=10,
         )
-        logging.info("✅ Database connection pool established.")
+        logging.info("Database connection pool established.")
 
     @classmethod
     async def close_pool(cls):
         if cls._pool:
             cls._pool.close()
             await cls._pool.wait_closed()
-            logging.info("🔒 Database connection pool closed.")
+            logging.info("Database connection pool closed.")
 
     @classmethod
     async def fetch(cls, query, args=None):
