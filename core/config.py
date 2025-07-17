@@ -14,6 +14,8 @@ class Config:
     DB_PASSWORD = os.getenv("DATABASE_PASSWORD")
     DB_NAME = os.getenv("DATABASE_NAME")
 
+    HYPIXEL_API_KEY = os.getenv("HYPIXEL_API_KEY")
+
     ANO_COMMANDS_GUILD_IDS = json.loads(os.getenv("ANO_COMMANDS_GUILD_IDS"))
     ANO_MEMBER_ROLE = os.getenv("ANO_MEMBER_ROLE")
     ANO_HIGH_RANK_ROLES = json.loads(os.getenv("ANO_HIGH_RANK_ROLES"))
