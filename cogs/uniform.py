@@ -6,6 +6,7 @@ from PIL import Image
 from core.config import config
 from util.embeds import ErrorEmbed
 from util.roles import is_ANO_member
+from util.requests import request
 
 
 class Uniform(commands.Cog):
@@ -28,11 +29,14 @@ class Uniform(commands.Cog):
         await interaction.response.defer()
 
         # Get skin
-        uuid = requests.get(f"https://api.mojang.com/users/profiles/minecraft/{username}").json()["id"]
-        data = requests.get(f"https://sessionserver.mojang.com/session/minecraft/profile/{uuid}").json()
+        uuid = (await request(f"https://api.mojang.com/users/profiles/minecraft/{username}")).get("id", "")
+        if not uuid:
+            return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
+        data = await request(f"https://sessionserver.mojang.com/session/minecraft/profile/{uuid}")
         skindata = ast.literal_eval(base64.b64decode(data["properties"][0]["value"]).decode("UTF-8"))
 
-        player_skin = Image.open(requests.get(skindata["textures"]["SKIN"]["url"], stream=True).raw)
+        #player_skin = Image.open(requests.get(skindata["textures"]["SKIN"]["url"], stream=True).raw)
+        player_skin = Image.open(await request(skindata["textures"]["SKIN"]["url"], return_type="stream"))
 
         if player_skin.height == 32:
             leg = player_skin.crop((0, 16, 16, 32))

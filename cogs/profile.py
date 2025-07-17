@@ -1,4 +1,4 @@
-import discord, os, time, requests, re, textwrap
+import discord, os, time, re, textwrap
 
 from discord import app_commands, File
 from discord.ext import commands
@@ -10,6 +10,7 @@ from database.connection import Database
 from util.embeds import ErrorEmbed
 from util.formatting import human_format
 from util.ranks import get_war_rank, get_xp_rank
+from util.requests import request
 from util.uuid import get_uuid
 
 class Profile(commands.Cog):
@@ -50,7 +51,7 @@ class Profile(commands.Cog):
         tmp_path = f"/tmp/{username}_model.png"
         if not os.path.exists(tmp_path) or time.time() - os.path.getmtime(tmp_path) > 86400:
             headers = {"User-Agent": "valor-bot/1.0"}
-            model = requests.get(f"https://visage.surgeplay.com/bust/{uuid}.png", headers=headers).content
+            model = await request(f"https://visage.surgeplay.com/bust/{uuid}.png", headers=headers, return_type="image")
             with open(tmp_path, "wb") as f:
                 f.write(model)
         model_img = Image.open(tmp_path).resize((203, 190))
@@ -117,7 +118,7 @@ class Profile(commands.Cog):
             if temp[0] in {"craftsman", "hunted", "ironman", "hardcore", "ultimate", "huic", "huich", "hic", "hich"}:
                 rank_badge = Image.open(f"assets/icons/gamemodes/{temp[0]}.png")
             else:
-                rank_badge = Image.open(requests.get(rank_badge_link, stream=True).raw)
+                rank_badge = Image.open(await request(rank_badge_link, return_type="stream"))
 
             # Finally draw the rankings, their names and their icons
             for x, line in enumerate(rank):
@@ -164,10 +165,9 @@ class Profile(commands.Cog):
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 
         # Fetch player data from API
-        res = requests.get(f"https://api.wynncraft.com/v3/player/{uuid}")
-        if res.status_code != 200:
+        data = await request(f"https://api.wynncraft.com/v3/player/{uuid}")
+        if not data:
             return await interaction.followup.send(embed=ErrorEmbed("Error fetching player data."))
-        data = res.json()
 
         # Get warcount data
         warcount = 0

@@ -5,6 +5,8 @@ from discord.ext import commands
 from core.config import config
 from database.connection import Database
 from util.embeds import ErrorEmbed
+from util.requests import request
+from util.uuid import get_uuid
 
 
 class Sus(commands.Cog):
@@ -15,33 +17,33 @@ class Sus(commands.Cog):
     async def sus(self, interaction: discord.Interaction, username: str):
         await interaction.response.defer()
 
+        player_exists = await get_uuid(username)
+        if not player_exists:
+            return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
+        
         # Try Mojang's old API first
-        res = requests.get(f"https://api.mojang.com/users/profiles/minecraft/{username}")
-        if res.status_code == 200:
-            id = res.json()["id"]
-            name = res.json()["name"]
+        res = await request(f"https://api.mojang.com/users/profiles/minecraft/{username}")
+        if res:
+            id = res.get("id")
+            name = res.get("name")
         else:
             # Fallback to Minecraft Services API
-            fallback_res = requests.get(f"https://api.minecraftservices.com/minecraft/profile/lookup/name/{username}")
-            if fallback_res.status_code != 200:
+            fallback_res = await request(f"https://api.minecraftservices.com/minecraft/profile/lookup/name/{username}")
+            if not fallback_res:
                 return await interaction.followup.send(embed=ErrorEmbed("Both Mojang APIs failed. Username may not exist."))
-            id = fallback_res.json()["id"]
-            name = fallback_res.json()["name"]
+            id = fallback_res.get("id")
+            name = fallback_res.get("name")
 
         dashed_uuid = str(uuid.UUID(hex=id))
 
-        headers = {
-            'user-agent': 'ano_valor/0.0.0',
-            "API-Key": config.HYPIXEL_API_KEY
-        }
-        hypixel_data = requests.get(f"https://api.hypixel.net/player?uuid={id}", headers=headers).json()
+        hypixel_data = await request(f"https://api.hypixel.net/player?uuid={id}", headers={"API-Key": config.HYPIXEL_API_KEY})
         hypixel_join = None
         if hypixel_data["success"] and hypixel_data["player"] and hypixel_data["player"]["firstLogin"]:
             hypixel_join = float(int(hypixel_data["player"]["firstLogin"] / 1000))
         else:
             return await interaction.followup.send(embed=ErrorEmbed("Hypixel API Issue"))
 
-        wynn_data = requests.get(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult").json()
+        wynn_data = await request(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult")
         if "username" not in wynn_data:
             return await interaction.followup.send(embed=ErrorEmbed("Wynn API Issue"))
 

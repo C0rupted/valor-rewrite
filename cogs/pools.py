@@ -1,9 +1,10 @@
-import discord, requests
+import discord
 from discord import app_commands
 from discord.ext import commands
 
 from util.embeds import ErrorEmbed
 from util.mappings import EMOJI_MAP, ITEM_TO_EMOJI_MAP, ASPECT_TO_EMOJI_MAP
+from util.requests import request_with_csrf
 
 
 class Pools(commands.Cog):
@@ -49,21 +50,8 @@ class Pools(commands.Cog):
 
     # === Loot Pool ===
 
-    async def fetch_data(self, url):
-        session = requests.Session()
-        token_response = session.get(self.TOKEN_URL)
-        token_response.raise_for_status()
-
-        csrf_token = session.cookies.get("csrf_token")
-        headers = {"Content-Type": "application/json", "X-CSRF-Token": csrf_token}
-
-        response = session.get(url, headers=headers)
-        response.raise_for_status()
-
-        return response.json()
-
     async def build_loot_embed(self, pool_key=None):
-        data = (await self.fetch_data(self.LOOTPOOL_URL))["Loot"]
+        data = (await request_with_csrf(self.TOKEN_URL, self.LOOTPOOL_URL))["Loot"]
 
         # All lootpools overview
         if pool_key is None:
@@ -140,7 +128,7 @@ class Pools(commands.Cog):
     # === Aspect Pool ===
 
     async def build_aspect_embed(self, raid_key=None):
-        data = await self.fetch_data(self.ASPECTPOOL_URL)
+        data = await request_with_csrf(self.TOKEN_URL, self.ASPECTPOOL_URL)
 
         if raid_key is None:
             embed = discord.Embed(title="Aspect Pool Overview", color=discord.Colour.from_rgb(255, 71, 77))
