@@ -33,6 +33,7 @@ class ValorBot(commands.Bot):
             "cogs.uniform",
             "cogs.pools",
             "cogs.annihilation_tracker",
+            "cogs.uptime",
         ]
 
         for ext in extensions:
@@ -65,4 +66,7 @@ def run_bot():
     setup_logging()
 
     bot = ValorBot()
-    bot.run(config.TOKEN)
+    if config.TESTING:
+        bot.run(config.TOKEN)
+    else:
+        bot.run(config.TOKEN, log_handler=None)
