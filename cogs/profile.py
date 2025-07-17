@@ -1,13 +1,16 @@
 import discord, os, time, requests, re, textwrap
+
 from discord import app_commands, File
 from discord.ext import commands
 from PIL import Image, ImageFont, ImageDraw
+
 from datetime import datetime
 from database.connection import Database
+
 from util.embeds import ErrorEmbed
 from util.formatting import human_format
-from util.uuid import get_uuid
 from util.ranks import get_war_rank, get_xp_rank
+from util.uuid import get_uuid
 
 class Profile(commands.Cog):
     def __init__(self, bot):

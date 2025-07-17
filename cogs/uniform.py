@@ -1,12 +1,11 @@
 import discord, requests, ast, base64
-from discord.ext import commands
 from discord import app_commands, File
+from discord.ext import commands
 from PIL import Image
 
 from core.config import config
 from util.embeds import ErrorEmbed
 from util.roles import is_ANO_member
-from util.uuid import get_uuid
 
 
 class Uniform(commands.Cog):
