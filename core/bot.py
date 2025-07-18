@@ -1,11 +1,10 @@
-# core/bot.py
-
-import discord, logging
+import discord, logging, traceback
 from discord.ext import commands
 
 from core.config import config
 from core.logging import setup_logging
 from database.connection import Database
+from util.embeds import ErrorEmbed
 
 
 class ValorBot(commands.Bot):
@@ -20,6 +19,8 @@ class ValorBot(commands.Bot):
             help_command=None,
             log_handler=None
         )
+
+        self.tree.error(coro=self.on_app_command_error)
 
     async def setup_hook(self):
         await self.load_extensions()
@@ -57,6 +58,20 @@ class ValorBot(commands.Bot):
 
         logging.info("Successfully synced all slash commands")
         logging.info("Bot is ready")
+    
+    async def on_app_command_error(self, interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
+        # Log full traceback
+        logging.error(f"An error occurred while executing a {error.command} command:")
+        logging.error("".join(traceback.format_exception(type(error), error, error.__traceback__)))
+
+        # Send error message to user
+        embed = ErrorEmbed("An unexpected error occurred while executing the command.", footer="Please contact ANO and report this bug")
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embed)
+        else:
+            await interaction.response.send_message(embed=embed)
+
+
 
     async def close(self):
         await Database.close_pool()

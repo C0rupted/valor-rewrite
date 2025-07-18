@@ -6,8 +6,10 @@ class ErrorEmbed(discord.Embed):
     Basic error report embed.
     Usage: ErrorEmbed(description: str)
     """
-    def __init__(self, description="An error occurred."):
+    def __init__(self, description: str ="An error occurred.", footer: str = None):
         super().__init__(title="Error!", description=description, color=discord.Color.red())
+        if footer:
+            self.set_footer(text=footer)
 
 
 class TextTableEmbed(discord.Embed):

@@ -193,5 +193,5 @@ class Profile(commands.Cog):
         file = File(tmp_path, filename="profile.png")
         await interaction.followup.send(file=file)
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Profile(bot))

@@ -137,7 +137,7 @@ class ReportAnnihilationView(View):
         if self.message:
             await self.message.edit(view=None)
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
     cog = AnnihilationTracker(bot)
     await bot.add_cog(cog)
 
