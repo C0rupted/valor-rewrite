@@ -35,7 +35,8 @@ class ValorBot(commands.Bot):
             "cogs.pools",
             "cogs.annihilation_tracker",
             "cogs.uptime",
-            "cogs.sus"
+            "cogs.sus",
+            "cogs.settings"
         ]
 
         for ext in extensions:

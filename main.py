@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
 
     # Create these directories if they don't already exist
-    directories = ["storages"]
+    directories = ["storages", "storages/user_settings", "storages/guild_settings"]
     for dir in directories:
         try:
             os.makedirs(dir, exist_ok=True)
