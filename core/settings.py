@@ -7,7 +7,7 @@ SettingType = Literal["number", "boolean", "text", "list"]
 SETTINGS_SCHEMAS = {
     # All of these are silly random settings, they will be changed.
     "user": {
-        "preferred_leaderboard_output_type": {"type": "text", "default": "image", "choices": ["image", "text"]}, # only useful setting, yet to be implemented
+        "preferred_leaderboard_output_type": {"type": "text", "default": "image", "choices": ["image", "text"], "description": "The output type preferred for leaderboard-like commands such as /leaderboard, /guild_raids and /warcount"}, # only useful setting, yet to be implemented
         "theme": {"type": "text", "default": "light", "choices": ["light", "dark", "purple"]},
         "favorite_numbers": {"type": "list", "default": []},
     },

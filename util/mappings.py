@@ -120,3 +120,8 @@ EMOJI_MAP = {
     "shamanaspect": "<:shamanaspect:1373982898352295976>",
     "warrioraspect": "<:warrioraspect:1373982900386791454>"
 }
+
+UI_EMOJI_MAP = {
+    "right_arrow": "<:rightarrow:1396759382380773548>",
+    "left_arrow": "<:leftarrow:1396759214403092541>"
+}

@@ -11,7 +11,7 @@ from util.embeds import ErrorEmbed
 from util.formatting import human_format
 from util.ranks import get_war_rank, get_xp_rank
 from util.requests import request
-from util.uuid import get_uuid
+from util.uuid import get_uuid_from_name
 
 class Profile(commands.Cog):
     def __init__(self, bot):
@@ -160,7 +160,7 @@ class Profile(commands.Cog):
         await interaction.response.defer()
 
         # Get player UUID and confirm player exists
-        uuid = await get_uuid(username)
+        uuid = await get_uuid_from_name(username)
         if not uuid:
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 

@@ -1,4 +1,4 @@
-import discord, requests, datetime, time, uuid
+import discord,  datetime, time, uuid, logging
 from discord import app_commands, Embed
 from discord.ext import commands
 
@@ -6,7 +6,7 @@ from core.config import config
 from database.connection import Database
 from util.embeds import ErrorEmbed
 from util.requests import request
-from util.uuid import get_uuid
+from util.uuid import get_uuid_from_name
 
 
 class Sus(commands.Cog):
@@ -17,7 +17,7 @@ class Sus(commands.Cog):
     async def sus(self, interaction: discord.Interaction, username: str):
         await interaction.response.defer()
 
-        player_exists = await get_uuid(username)
+        player_exists = await get_uuid_from_name(username)
         if not player_exists:
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
         
@@ -65,7 +65,7 @@ class Sus(commands.Cog):
 
         # blacklist check
         query = "SELECT * FROM player_blacklist WHERE uuid=%s"
-        blacklisted = await Database.execute(query, (dashed_uuid))
+        blacklisted = await Database.fetch(query, (dashed_uuid))
         if blacklisted:
             blacklisted = "**BLACKLISTED**"
             blacklisted_sus = 100.0
