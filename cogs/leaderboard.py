@@ -104,7 +104,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
             for i in range(len(sliced)):
                 sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
 
-            embed = TextTableEmbed(["Rank", "Name", "Value"], sliced, title=view.title, color=0x333333)
+            embed = TextTableEmbed([" Rank ", " Name ", " Value "], sliced, title=view.title, color=0x333333)
             await interaction.followup.send(embed=embed, view=view, file=None)
 
     @app_commands.command(name="dungeons", description="Dungeon leaderboards")

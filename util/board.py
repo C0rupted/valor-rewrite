@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from core.settings import SettingsManager
 from util.embeds import TextTableEmbed
+from util.guilds import guild_tags_from_names
 from util.mappings import UI_EMOJI_MAP
 from util.requests import fetch_player_busts
 
@@ -10,13 +11,14 @@ from util.requests import fetch_player_busts
 FONT_PATH = "assets/fonts/MinecraftRegular.ttf"
 
 class BoardView(discord.ui.View):
-    def __init__(self, user_id, data: list[tuple[str, int]], title: str = "Leaderboard", max_page: int = 9999999, stat_counter: str = "Value"):
+    def __init__(self, user_id, data: list[tuple[str, int]], title: str = "Leaderboard", max_page: int = 9999999, stat_counter: str = "Value", is_guild_board: bool = False):
         super().__init__()
         self.user_id = user_id
         self.data = data
         self.max_page = max_page
         self.title = title
         self.stat_counter = stat_counter
+        self.is_guild_board = is_guild_board
 
         self.page = 0
 
@@ -54,7 +56,7 @@ class BoardView(discord.ui.View):
         await interaction.response.defer()
 
         if self.is_fancy:
-            board = await build_board(self.data, self.page)
+            board = await build_board(self.data, self.page, is_guild_board=self.is_guild_board)
             await interaction.edit_original_response(embed=None, view=self, attachments=[board])
         else:
             start = self.page * 10
@@ -64,12 +66,12 @@ class BoardView(discord.ui.View):
             for i in range(len(sliced)):
                 sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
             
-            embed = TextTableEmbed(["Rank", "Name", self.stat_counter], sliced, title=self.title, color=0x333333)
+            embed = TextTableEmbed([" Rank ", " Name ", self.stat_counter], sliced, title=self.title, color=0x333333)
             await interaction.edit_original_response(embed=embed, view=self, attachments=[])
 
 
 
-async def build_board(data: list[tuple[str, int]], page: int) -> discord.Embed:
+async def build_board(data: list[tuple[str, int]], page: int, is_guild_board: bool = False) -> discord.Embed:
     """
     Builds a leaderboard-like image.
 
@@ -101,22 +103,38 @@ async def build_board(data: list[tuple[str, int]], page: int) -> discord.Embed:
 
     names = []
     for i in data: names.append(i[0])
-    await fetch_player_busts(names)
+
+    if is_guild_board:
+        tags = (await guild_tags_from_names(names))[0]
+    else:
+        await fetch_player_busts(names)
+
 
     for i in range(1, 11):
-        stat = data_list[(i-1)+(page*10)]
+        try:
+            stat = data_list[(i-1)+(page*10)]
+        except IndexError:
+            continue
         height = ((i-1)*69)+5
         board.paste(overlay if overlay_toggle else overlay2, (5, height), overlay)
         overlay_toggle = not overlay_toggle
 
-        try:
-            model_img = Image.open(f"/tmp/{stat[1]}_model.png", 'r')
-            model_img = model_img.resize((64, 64))
-        except Exception as e:
-            model_img = Image.open(f"assets/unknown_model.png", 'r')
-            model_img = model_img.resize((64, 64))
-            print(f"Error loading image: {e}")
+        if is_guild_board:
+            tag = tags[names.index(stat[1])]
+            try:
+                model_img = Image.open(f"assets/icons/guilds/{tag}.png", 'r')
+                model_img = model_img.crop(model_img.getbbox())
+            except FileNotFoundError:
+                model_img = Image.new("RGBA", (64, 64))
+        else:
+            try:
+                model_img = Image.open(f"/tmp/{stat[1]}_model.png", 'r')
+            except Exception as e:
+                model_img = Image.open(f"assets/unknown_model.png", 'r')
+                
+                print(f"Error loading image: {e}")
 
+        model_img = model_img.resize((64, 64))
         board.paste(model_img, (model_margin, height), model_img)
         draw.text((rank_margin, height+22), "#"+str(stat[0]), font=font)
         draw.text((name_margin, height+22), str(stat[1]), font=font)

@@ -38,6 +38,7 @@ class ValorBot(commands.Bot):
             "cogs.sus",
             "cogs.settings",
             "cogs.leaderboard",
+            "cogs.graids"
         ]
 
         for ext in extensions:

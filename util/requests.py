@@ -83,7 +83,7 @@ async def request_with_csrf(csrf_url: str, url: str, return_type: str = "json"):
         return None
 
 
-async def download_player_bust(session: aiohttp.ClientSession, name: str, filename: str):
+async def download_player_bust(session: aiohttp.ClientSession, name: str, filename: str, retry: bool = True):
     from util.uuid import get_uuid_from_name
 
     try:
@@ -101,14 +101,17 @@ async def download_player_bust(session: aiohttp.ClientSession, name: str, filena
             elif response.status == 404:
                 return False
             else:
-                logging.warning(f"Failed to fetch {name} of {uuid}: {response.status}")
+                if retry:
+                    await download_player_bust(session, name, filename, retry=False)
+                else:
+                    logging.warning(f"Failed to fetch {name} of {uuid}: {response.status}")
     except Exception as e:
         logging.error(f"Error fetching {name} of {uuid}: {e}")
+
     return None
 
 
 async def fetch_player_busts(names: list[str]):
-
     tasks = []
     now = time.time()
 
