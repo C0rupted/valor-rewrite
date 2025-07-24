@@ -25,9 +25,9 @@ class InfoEmbed(discord.Embed):
 class TextTableEmbed(discord.Embed):
     """
     Embed that displays a table of text with aligned columns.
-    Usage: TextTableEmbed(header: List[str], rows: List[List[str]])
+    Usage: TextTableEmbed(headers: List[str], rows: List[List[str]])
     """
-    def __init__(self, header: list[str], data: list[list[str]], title: str = None, footer: str = None, color: discord.Colour = None):
+    def __init__(self, headers: list[str], rows: list[list[str]], title: str = None, footer: str = None, color: discord.Colour = None):
         super().__init__()
 
         if title:
@@ -42,17 +42,17 @@ class TextTableEmbed(discord.Embed):
             self.set_footer(text=footer)
 
         # Calculate column widths
-        column_widths = [max(len(str(item)) for item in col) for col in zip(header, *data)]
+        column_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
 
         def row_format(row: list[str]) -> str:
             return " ┃ ".join(f"{col:<{column_widths[i]}}" for i, col in enumerate(row))
 
         # Build header and separator
-        header_row = row_format(header)
-        separator = "━╋━".join("━" * column_widths[i] for i in range(len(header)))
+        header_row = row_format(headers)
+        separator = "━╋━".join("━" * column_widths[i] for i in range(len(headers)))
 
         # Format all data rows
-        data_rows = [row_format(row) for row in data]
+        data_rows = [row_format(row) for row in rows]
 
         table = f"```isbl\n{header_row}\n{separator}\n" + "\n".join(data_rows) + "\n```"
         self.description = table

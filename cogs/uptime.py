@@ -42,9 +42,9 @@ class Uptime(commands.Cog):
         # Sort by uptime (descending)
         result.sort(key=lambda x: int(x[1].split("h")[0]) * 60 + int(x[1].split("h")[1].split("m")[0]), reverse=True)
 
-        header = ["   World   ", "   Uptime   ", "   Players   "]
+        headers = ["   World   ", "   Uptime   ", "   Players   "]
 
-        embed = TextTableEmbed(header, result, title="Wynncraft World Uptimes", footer=f"{len(result)} worlds are currently online.")
+        embed = TextTableEmbed(headers, result, title="Wynncraft World Uptimes", footer=f"{len(result)} worlds are currently online.")
         await interaction.followup.send(embed=embed)
 
 

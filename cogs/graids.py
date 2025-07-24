@@ -18,7 +18,7 @@ class GRaids(commands.Cog):
     @app_commands.command(name="graids", description="Leaderboard for guild raid counts")
     @app_commands.describe(
         guilds="Filter by guild tags (comma-separated)",
-        range="Range of days in the past you want to check",
+        range="Number of days ago, or a range like '0,7'",
         players="Filter by player names (comma-separated)",
         guild_wise="Show raid totals per guild instead of individual players"
     )
