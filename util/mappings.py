@@ -125,3 +125,13 @@ UI_EMOJI_MAP = {
     "right_arrow": "<:rightarrow:1396759382380773548>",
     "left_arrow": "<:leftarrow:1396759214403092541>"
 }
+
+RANK_SYMBOL_MAP = {
+    "recruit": "",
+    "recruiter": "*",
+    "captain": "**",
+    "strategist": "***",
+    "chief": "****",
+    "owner": "*****",
+}
+
