@@ -20,5 +20,7 @@ class Config:
     ANO_MEMBER_ROLE = os.getenv("ANO_MEMBER_ROLE")
     ANO_MILITARY_ROLE = os.getenv("ANO_MILITARY_ROLE")
     ANO_HIGH_RANK_ROLES = json.loads(os.getenv("ANO_HIGH_RANK_ROLES"))
+    ANO_TITAN_ROLES = json.loads(os.getenv("ANO_TITAN_ROLES"))
+    ANO_CHIEF_ROLES = json.loads(os.getenv("ANO_CHIEF_ROLES"))
 
 config = Config()

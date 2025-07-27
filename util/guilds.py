@@ -32,7 +32,7 @@ async def guild_name_from_tag(tag: str) -> str:
 async def guild_tag_from_name(name: str) -> str:
     if "-" in name or ";" in name: return None
     
-    guilds = await Database.fetch(f"SELECT * FROM guild_tag_name WHERE LOWER(guild)='{name.lower()}' ORDER BY priority DESC")
+    guilds = await Database.fetch("SELECT * FROM guild_tag_name WHERE LOWER(guild)=%s ORDER BY priority DESC", (name.lower()))
     
     if not len(guilds):
         return None
@@ -77,3 +77,8 @@ async def guild_tags_from_names(names: List[str]) -> Tuple[MutableSet[str], List
     return guild_tags, unidentified
 
 
+
+async def player_guild_from_uuid(uuid: str) -> str:
+    result = await Database.fetch("SELECT joined FROM guild_join_log WHERE uuid=%s ORDER BY date DESC LIMIT 1", (uuid))
+    guild = None if not result else result[0]["joined"]
+    return guild

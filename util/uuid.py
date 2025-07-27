@@ -1,4 +1,3 @@
-import requests
 from database.connection import Database
 from util.requests import request
 
@@ -14,7 +13,7 @@ async def get_uuid_from_name(player: str) -> str | None:
         return result[0]["uuid"]
 
     res = await request(f"https://api.mojang.com/users/profiles/minecraft/{player}")
-    if res.status_code != 200:
+    if not res:
         return None
 
     formatted = format_uuid(res["id"])
@@ -22,12 +21,16 @@ async def get_uuid_from_name(player: str) -> str | None:
     return formatted
 
 async def get_name_from_uuid(uuid: str):
-    exist = await Database.fetch("SELECT * FROM uuid_name WHERE uuid=%s LIMIT 1", (uuid))
+    res = await Database.fetch("SELECT * FROM uuid_name WHERE uuid=%s LIMIT 1", (uuid))
 
-    if not exist:
-        name = (await request(f"https://api.mojang.com/user/profile/{uuid.replace('-', '')}"))["name"]
-        await Database.fetch("INSERT INTO uuid_name VALUES (%s, %s)", (uuid, name))
-    else:
-        name = exist[0][1]
+    if res:
+        return res[0]["name"]
+
+    res = await request(f"https://api.mojang.com/user/profile/{uuid.replace('-', '')}")
+
+    if not res:
+        return None
+
+    await Database.fetch("INSERT INTO uuid_name VALUES (%s, %s)", (uuid, res["name"]))
     
-    return name
+    return res["name"]

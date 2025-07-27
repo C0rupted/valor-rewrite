@@ -19,8 +19,8 @@ class InfoEmbed(discord.Embed):
     Basic informative embed.
     Usage: ErrorEmbed(description: str)
     """
-    def __init__(self, title: str = "", description: str = "", footer: str = None):
-        super().__init__(title=title, description=description, color=discord.Color.blurple())
+    def __init__(self, title: str = "", description: str = "", footer: str = None, color: discord.Colour = discord.Color.blurple()):
+        super().__init__(title=title, description=description, color=color)
         if footer:
             self.set_footer(text=footer)
 
