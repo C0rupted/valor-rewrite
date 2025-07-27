@@ -135,3 +135,18 @@ RANK_SYMBOL_MAP = {
     "owner": "*****",
 }
 
+MAX_STATS = {
+    "total": 1690,
+    "combat": 106,
+    "gathering": 132,
+    "crafting": 132
+}
+
+SUPPORT_RANK_SLOTS = {
+    None: 6,
+    "vip": 9,
+    "vipplus": 11,
+    "hero": 14,
+    "champion": 14
+}
+
