@@ -33,7 +33,7 @@ class WeeklyTicketPostService(commands.Cog):
             return
 
         headers = ["", "Name", "War", "GXP", "Raid", "Bonus", "Total"]
-        rows = await get_tickets(None)
+        rows = await get_tickets()
 
         if not rows:
             return await channel.send(embed=ErrorEmbed("No ticket data found."))

@@ -65,18 +65,6 @@ GROUP BY
     return rows
 
 
-async def add_ticket_bonus(username: str, value: int) -> str | None:
-    uuid = await get_uuid_from_name(username)
-    if not uuid:
-        return None
-
-    await Database.execute(
-        "INSERT INTO ticket_bonuses (uuid, ticket_bonus, timestamp) VALUES (%s, %s, %s)",
-        (uuid, value, time.time())
-    )
-    return uuid
-
-
 class Tickets(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot

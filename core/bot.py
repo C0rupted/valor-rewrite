@@ -51,7 +51,8 @@ class ValorBot(commands.Bot):
             "cogs.map",
             "cogs.warcount",
             "cogs.tickets",
-            "services.weekly_ticket_post"
+            "services.weekly_ticket_post",
+            "cogs.admin"
         ]
 
         for ext in extensions:
@@ -86,7 +87,6 @@ class ValorBot(commands.Bot):
             await interaction.followup.send(embed=embed)
         else:
             await interaction.response.send_message(embed=embed)
-
 
 
     async def close(self):
