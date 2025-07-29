@@ -107,7 +107,7 @@ class WarcountBoardView(discord.ui.View):
             for row in sliced:
                 lines.append(' ┃ '.join(str(cell).rjust(widths[i]) for i, cell in enumerate(row)))
             lines.append(separator)
-            content = '```' + '\n'.join(lines) + '```'
+            content = '```isbl\n' + '\n'.join(lines) + '```'
             await interaction.response.edit_message(content=content, view=self, attachments=[])
 
     @discord.ui.button(emoji=UI_EMOJI_MAP["left_arrow"])

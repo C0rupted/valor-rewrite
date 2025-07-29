@@ -165,7 +165,7 @@ ORDER BY all_wars DESC;"""
             for row in sliced:
                 lines.append(' ┃ '.join(str(cell).rjust(widths[i]) for i, cell in enumerate(row)))
             lines.append(separator)
-            content = '```' + '\n'.join(lines) + '```'
+            content = '```isbl\n' + '\n'.join(lines) + '```'
             await interaction.followup.send(content=content, view=view)
 
 
