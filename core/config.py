@@ -23,4 +23,6 @@ class Config:
     ANO_TITAN_ROLES = json.loads(os.getenv("ANO_TITAN_ROLES"))
     ANO_CHIEF_ROLES = json.loads(os.getenv("ANO_CHIEF_ROLES"))
 
+    TITAN_CHAT_CHANNEL_ID = json.loads(os.getenv("TITAN_CHAT_CHANNEL_ID"))
+
 config = Config()

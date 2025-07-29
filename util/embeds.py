@@ -79,8 +79,8 @@ class PaginatedTextTableEmbed(discord.ui.View):
     Paginated embed that displays a table of text with aligned columns.
     Usage: PaginatedTextTableEmbed.send(headers: List[str], rows: List[List[str]])
     """
-    def __init__(self, headers: list[str], rows: list[list[str]], title: str = None, footer: str = None, color: discord.Colour = None, rows_per_page: int = 10):
-        super().__init__(timeout=60)
+    def __init__(self, headers: list[str], rows: list[list[str]], title: str = None, footer: str = None, color: discord.Colour = None, rows_per_page: int = 10, timeout: int = 60):
+        super().__init__(timeout=timeout)
         self.headers = headers
         self.rows = rows
         self.title = title
