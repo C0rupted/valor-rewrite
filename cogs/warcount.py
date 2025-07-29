@@ -163,7 +163,7 @@ ORDER BY all_wars DESC;"""
             separator = ''.join('╋' if c == '┃' else '━' for c in lines[0])
             lines.append(separator)
             for row in sliced:
-                lines.append(' ┃ '.join(str(cell).rjust(widths[i]) for i, cell in enumerate(row)))
+                lines.append(' ┃ '.join(str(cell).ljust(widths[i]) for i, cell in enumerate(row)))
             lines.append(separator)
             content = '```isbl\n' + '\n'.join(lines) + '```'
             await interaction.followup.send(content=content, view=view)
