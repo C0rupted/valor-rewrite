@@ -150,3 +150,11 @@ SUPPORT_RANK_SLOTS = {
     "champion": 14
 }
 
+CLASS_RESKINS_MAP = {
+    "ARCHER": "HUNTER",
+    "WARRIOR": "KNIGHT", 
+    "MAGE": "DARKWIZARD", 
+    "ASSASSIN": "NINJA", 
+    "SHAMAN": "SKYSEER"
+}
+

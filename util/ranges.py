@@ -60,3 +60,6 @@ async def get_range_from_string(range_input: str) -> Union[Tuple[float, float], 
         return left, right
     except ValueError:
         return None
+
+def range_alt(_range: int):
+    return range(_range)

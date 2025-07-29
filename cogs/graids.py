@@ -18,8 +18,8 @@ class GRaids(commands.Cog):
     @app_commands.command(name="graids", description="Leaderboard for guild raid counts")
     @app_commands.describe(
         guilds="Filter by guild tags (comma-separated)",
-        range="Number of days ago, or a range like '0,7'",
-        players="Filter by player names (comma-separated)",
+        range="Number of days ago, or a range like '0,7', or season name like 'season26'",
+        players="Filter by player usernames (comma-separated)",
         guild_wise="Show raid totals per guild instead of individual players"
     )
     async def graids(self, interaction: discord.Interaction, guilds: str = None, range: str = "7", players: str = None, guild_wise: bool = False):

@@ -48,7 +48,8 @@ class ValorBot(commands.Bot):
             "cogs.blacklist",
             "cogs.completion",
             "cogs.history",
-            "cogs.map"
+            "cogs.map",
+            "cogs.warcount"
         ]
 
         for ext in extensions:

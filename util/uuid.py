@@ -8,7 +8,7 @@ async def get_uuid_from_name(player: str) -> str | None:
     if "-" in player:
         return None
 
-    result = await Database.fetch("SELECT uuid FROM uuid_name WHERE name=%s LIMIT 1", (player,))
+    result = await Database.fetch("SELECT uuid FROM uuid_name WHERE name=%s LIMIT 1", (player))
     if result:
         return result[0]["uuid"]
 
