@@ -1,8 +1,8 @@
 import time
 from typing import Tuple, Union
-import logging
 
 from database.connection import Database 
+
 
 
 async def get_range_from_season(season_name: str) -> Union[Tuple[float, float], None]:
@@ -21,6 +21,7 @@ async def get_range_from_season(season_name: str) -> Union[Tuple[float, float], 
     end_ts = res[0]["end_time"]
 
     return start_ts, end_ts
+
 
 async def get_range_from_string(range_input: str) -> Union[Tuple[float, float], None]:
     """
@@ -61,5 +62,28 @@ async def get_range_from_string(range_input: str) -> Union[Tuple[float, float], 
     except ValueError:
         return None
 
+
 def range_alt(_range: int):
     return range(_range)
+
+
+async def get_current_season() -> str | None:
+    current_ts = int(time.time())
+
+    # Limit to 2 because it will always return the "all" season first. 
+    query = """
+        SELECT season_name
+        FROM season_list
+        WHERE start_time <= %s AND end_time >= %s
+        LIMIT 2
+    """
+
+    rows = await Database.fetch(query, (current_ts, current_ts))
+    if not rows:
+        return None  # No active season
+    
+    try:
+        # Refer to the second result, as the "all" season will be first result
+        return rows[1]["season_name"]
+    except IndexError:
+        return None

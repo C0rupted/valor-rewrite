@@ -118,7 +118,8 @@ EMOJI_MAP = {
     "assassinaspect": "<:assassinaspect:1373982817360543764>",
     "mageaspect": "<:mageaspect:1373982896250945597>",
     "shamanaspect": "<:shamanaspect:1373982898352295976>",
-    "warrioraspect": "<:warrioraspect:1373982900386791454>"
+    "warrioraspect": "<:warrioraspect:1373982900386791454>",
+    "le": "<:le:1400002600346189937>"
 }
 
 UI_EMOJI_MAP = {

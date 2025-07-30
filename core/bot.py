@@ -52,7 +52,8 @@ class ValorBot(commands.Bot):
             "cogs.warcount",
             "cogs.tickets",
             "services.weekly_ticket_post",
-            "cogs.admin"
+            "cogs.admin",
+            "cogs.oceantrials"
         ]
 
         for ext in extensions:
