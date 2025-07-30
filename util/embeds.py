@@ -3,6 +3,7 @@ import discord
 from util.mappings import UI_EMOJI_MAP
 
 
+
 class ErrorEmbed(discord.Embed):
     """
     Basic error report embed.
@@ -14,6 +15,7 @@ class ErrorEmbed(discord.Embed):
             self.set_footer(text=footer)
 
 
+
 class InfoEmbed(discord.Embed):
     """
     Basic informative embed.
@@ -23,6 +25,7 @@ class InfoEmbed(discord.Embed):
         super().__init__(title=title, description=description, color=color)
         if footer:
             self.set_footer(text=footer)
+
 
 
 class TextTableEmbed(discord.Embed):
@@ -72,6 +75,7 @@ class TextTableEmbed(discord.Embed):
 
             if chunk:
                 self.add_field(name="", value=f"```isbl\n{'\n'.join(chunk)}\n```", inline=False)
+
 
 
 class PaginatedTextTableEmbed(discord.ui.View):
@@ -159,6 +163,7 @@ class PaginatedTextTableEmbed(discord.ui.View):
         return view
 
 
+
 class PaginatedTextTable(discord.ui.View):
     """
     Paginated text table that displays with aligned columns.
@@ -244,6 +249,114 @@ class PaginatedTextTable(discord.ui.View):
         
         return view
 
+
+
+class PaginatedFieldedTextTableEmbed(discord.ui.View):
+    """
+    Paginated embed that displays sectioned tables with aligned columns.
+    Usage: PaginatedFieldedTextTableEmbed.send(headers, rows_by_section)
+    """
+    def __init__(
+        self,
+        headers: list[str],
+        rows_by_section: dict[str, list[list[str]]],
+        title: str = None,
+        footer: str = None,
+        color: discord.Colour = None,
+        rows_per_page: int = 10,
+        timeout: int = 60,
+    ):
+        super().__init__(timeout=timeout)
+        self.headers = headers
+        self.rows_by_section = rows_by_section
+        self.title = title
+        self.footer = footer
+        self.color = color or discord.Color.teal()
+        self.rows_per_page = rows_per_page
+        self.page = 0
+
+        # Flatten sections while keeping mapping of section headers
+        self.sectioned_rows: list[tuple[str, list[str]]] = []
+        for section, rows in rows_by_section.items():
+            for row in rows:
+                self.sectioned_rows.append((section, row))
+
+        self.total_pages = (len(self.sectioned_rows) + rows_per_page - 1) // rows_per_page
+        self.message = None
+
+        self.prev_button = discord.ui.Button(emoji=UI_EMOJI_MAP["left_arrow"], style=discord.ButtonStyle.gray)
+        self.prev_button.callback = self.go_previous
+        self.next_button = discord.ui.Button(emoji=UI_EMOJI_MAP["right_arrow"], style=discord.ButtonStyle.gray)
+        self.next_button.callback = self.go_next
+
+        self.add_item(self.prev_button)
+        self.add_item(self.next_button)
+
+    def format_page(self, page: int) -> discord.Embed:
+        start = page * self.rows_per_page
+        end = start + self.rows_per_page
+        sectioned_slice = self.sectioned_rows[start:end]
+
+        column_widths = [max(len(str(item)) for item in col) for col in zip(self.headers, *(r for _, r in self.sectioned_rows))]
+        
+        def row_format(row: list[str]) -> str:
+            return " ┃ ".join(f"{col:<{column_widths[i]}}" for i, col in enumerate(row))
+
+        header_row = row_format(self.headers)
+        separator = "━╋━".join("━" * column_widths[i] for i in range(len(self.headers)))
+
+        # Group by section on this page
+        sections: dict[str, list[str]] = {}
+        for section, row in sectioned_slice:
+            sections.setdefault(section, []).append(row_format(row))
+
+        embed = discord.Embed(title=self.title, color=self.color)
+
+        for section, formatted_rows in sections.items():
+            table = f"```isbl\n{header_row}\n{separator}\n" + "\n".join(formatted_rows) + "\n```"
+            embed.add_field(name=section, value=table, inline=False)
+
+        if self.footer:
+            embed.set_footer(text=f"{self.footer} | Page {page + 1}/{self.total_pages}")
+        else:
+            embed.set_footer(text=f"Page {page + 1}/{self.total_pages}")
+        return embed
+
+    async def go_previous(self, interaction: discord.Interaction):
+        if self.page > 0:
+            self.page -= 1
+            await interaction.response.edit_message(embed=self.format_page(self.page), view=self)
+        else:
+            await interaction.response.send_message("You are at the first page!", ephemeral=True)
+
+    async def go_next(self, interaction: discord.Interaction):
+        if self.page < self.total_pages - 1:
+            self.page += 1
+            await interaction.response.edit_message(embed=self.format_page(self.page), view=self)
+        else:
+            await interaction.response.send_message("You are at the last page!", ephemeral=True)
+
+    @classmethod
+    async def send(
+        cls,
+        interaction: discord.Interaction,
+        headers: list[str],
+        rows_by_section: dict[str, list[list[str]]],
+        title: str = None,
+        footer: str = None,
+        color: discord.Colour = None,
+        rows_per_page: int = 10,
+    ):
+        view = cls(headers, rows_by_section, title, footer, color, rows_per_page)
+        embed = view.format_page(0)
+
+        if interaction.response.is_done():
+            view.message = await interaction.followup.send(embed=embed, view=view)
+        else:
+            await interaction.response.send_message(embed=embed, view=view)
+            view.message = await interaction.original_response()
+        
+        return view
 
 
 
