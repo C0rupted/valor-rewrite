@@ -18,9 +18,9 @@ class BoardView(discord.ui.View):
         self.max_page = max_page
         self.title = title
         if headers:
-            self.headers = [" Rank "].extend(headers)
+            self.headers = ["Rank"] + headers
         else:
-            self.headers = [" Rank ", " Name ", stat_counter]
+            self.headers = ["Rank", "Name", stat_counter]
         self.stat_counter = stat_counter
         self.is_guild_board = is_guild_board
         self.use_text_embed = use_text_embed

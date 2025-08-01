@@ -5,6 +5,8 @@ from discord.ext import commands
 from database.connection import Database
 from util.board import BoardView, build_board
 from util.embeds import ErrorEmbed, TextTableEmbed
+from util.ranges import get_current_season
+from util.requests import request
 from util.uuid import get_name_from_uuid
 
 
@@ -142,6 +144,50 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
     @leaderboard_misc.autocomplete("stat")
     async def misc_autocomplete(self, interaction: discord.Interaction, current: str):
         return [discord.app_commands.Choice(name=name, value=name) for name in STATS["player_stats"]["names"] if current.lower() in name.lower()]
+
+    @app_commands.command(name="season_rating", description="Guild Season rating leaderboard")
+    @app_commands.describe(season="Pick a season to see its leaderboard (defaults to current season)")
+    async def season_ratings(self, interaction: discord.Interaction, season: int = None):
+        await interaction.response.defer()
+
+        # Get current season name
+        if not season:
+            season = await get_current_season()
+            season = season[6:]
+
+        try: season_num = int(season)
+        except ValueError: return await interaction.followup.send(embed=ErrorEmbed("You must provide a valid season number."))
+
+        if season_num < 25:
+            return await interaction.followup.send(embed=ErrorEmbed("Season rating leaderboards are not tracked for before Season 25."))
+
+        data = await request(f"https://raw.githubusercontent.com/C0rupted/wynncraft-sr-api/refs/heads/master/season-{season_num}.json")
+        if not data:
+            return await interaction.followup.send(embed=ErrorEmbed("Could not fetch season rating data."))
+
+        # Convert to list of (name, rating)
+        ratings = [[guild["name"], int(guild["rating"])] for guild in data]
+        ratings.sort(key=lambda g: g[1], reverse=True)
+
+        # Format rows as strings
+        rows = [[name, f"{rating:,}"] for name, rating in ratings]
+
+        view = BoardView(interaction.user.id, rows, title=f"Season Rating Leaderboard for Season {season_num}", is_guild_board=True, headers=["Guild", "Rating"])
+
+        if view.is_fancy:
+            board = await build_board(view.data, view.page, is_guild_board=True)
+            await interaction.followup.send(view=view, file=board)
+        else:
+            start = view.page * 10
+            end = start + 10
+            sliced = view.data[start:end]
+
+            for i in range(len(sliced)):
+                sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
+
+            embed = TextTableEmbed(["Rank", "Guild", "Rating"], sliced, title=view.title, color=0x333333)
+            await interaction.followup.send(embed=embed, view=view)
+
 
 
 async def setup(bot: commands.Bot):
