@@ -3,7 +3,7 @@ import discord, time
 from discord import app_commands
 from discord.ext import commands
 
-from database.connection import Database
+from database import Database
 from util.embeds import TextTableEmbed, ErrorEmbed
 from util.guilds import guild_names_from_tags
 from util.ranges import get_range_from_string

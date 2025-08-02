@@ -21,7 +21,7 @@ class WeeklyTicketPostService(commands.Cog):
 
     @tasks.loop(hours=168)  # 168 hours = 1 week
     async def ticket_post_loop(self):
-        from cogs.tickets import get_tickets
+        from commands.tickets import get_tickets
 
         channel = self.bot.get_channel(config.TITAN_CHAT_CHANNEL_ID)
         if channel is None:

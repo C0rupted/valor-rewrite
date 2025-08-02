@@ -5,7 +5,7 @@ from discord.ext import commands
 from datetime import datetime
 
 from core.config import config
-from database.connection import Database
+from database import Database
 from util.embeds import ErrorEmbed, InfoEmbed, PaginatedTextTableEmbed
 from util.roles import is_ANO_titan_rank, is_ANO_chief
 from util.guilds import player_guild_from_uuid, player_guilds_from_uuids

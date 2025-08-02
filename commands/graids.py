@@ -3,7 +3,7 @@ import discord, logging
 from discord import app_commands
 from discord.ext import commands
 
-from database.connection import Database
+from database import Database
 from util.board import BoardView, build_board
 from util.embeds import ErrorEmbed, TextTableEmbed
 from util.guilds import guild_names_from_tags

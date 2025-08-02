@@ -4,7 +4,7 @@ from discord import app_commands
 import time
 
 from core.config import config
-from database.connection import Database
+from database import Database
 from util.embeds import ErrorEmbed, InfoEmbed
 from util.roles import is_ANO_chief
 from util.uuid import get_uuid_from_name

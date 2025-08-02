@@ -1,7 +1,7 @@
 import time
 from typing import Tuple, Union
 
-from database.connection import Database 
+from database import Database 
 
 
 

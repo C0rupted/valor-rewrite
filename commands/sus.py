@@ -3,7 +3,7 @@ from discord import app_commands, Embed
 from discord.ext import commands
 
 from core.config import config
-from database.connection import Database
+from database import Database
 from util.embeds import ErrorEmbed
 from util.requests import request
 from util.uuid import get_uuid_from_name

@@ -4,7 +4,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core.config import config
-from database.connection import Database
+from database import Database
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
 from util.mappings import EMOJI_MAP
 from util.ranges import get_range_from_string, get_current_season

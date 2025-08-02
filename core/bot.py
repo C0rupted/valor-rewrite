@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from core.config import config
 from core.logging import setup_logging
-from database.connection import Database
+from database import Database
 from util.embeds import ErrorEmbed
 
 
@@ -20,42 +20,42 @@ class ValorBot(commands.Bot):
             log_handler=None
         )
 
-        self.tree.error(coro=self.on_app_command_error)
 
     async def setup_hook(self):
         await self.load_extensions()
         await self.tree.sync()
         await Database.init_pool()
 
+
     async def load_extensions(self):
         extensions = [
-            "core.errors",
-            "cogs.profile",
-            "cogs.uniform",
-            "cogs.pools",
-            "cogs.annihilation_tracker",
-            "cogs.uptime",
-            "cogs.sus",
-            "cogs.settings",
-            "cogs.leaderboard",
-            "cogs.graids",
-            "cogs.average",
-            "cogs.ffa",
-            "cogs.pings",
-            "cogs.coolness",
-            "cogs.online",
-            "cogs.activity",
-            "cogs.blacklist",
-            "cogs.completion",
-            "cogs.history",
-            "cogs.map",
-            "cogs.warcount",
-            "cogs.tickets",
-            "services.weekly_ticket_post",
-            "cogs.admin",
-            "cogs.oceantrials",
-            "cogs.guild",
-            "cogs.utilities"
+            "commands.activity",
+            "commands.admin",
+            "commands.annihilation_tracker",
+            "commands.average",
+            "commands.blacklist",
+            "commands.completion",
+            "commands.coolness",
+            "commands.ffa",
+            "commands.graids",
+            "commands.guild",
+            "commands.history",
+            "commands.leaderboard",
+            "commands.map",
+            "commands.oceantrials",
+            "commands.online",
+            "commands.pings",
+            "commands.pools",
+            "commands.profile",
+            "commands.settings",
+            "commands.sus",
+            "commands.tickets",
+            "commands.uniform",
+            "commands.uptime",
+            "commands.utilities",
+            "commands.warcount",
+            "listeners.errors",
+            "services.weekly_ticket_post"
         ]
 
         for ext in extensions:
@@ -64,6 +64,7 @@ class ValorBot(commands.Bot):
                 logging.info(f"Loaded extension: {ext}")
             except Exception as e:
                 logging.error(f"Failed to load extension {ext}: {e}")
+
 
     async def on_ready(self):
         logging.info(f"Logged in as {self.user} (ID: {self.user.id})")
@@ -77,24 +78,14 @@ class ValorBot(commands.Bot):
                 logging.warning(f"Missing access to sync commands in guild {guild.id}")
 
         logging.info("Successfully synced all slash commands")
-        logging.info("Bot is ready")
-    
-    async def on_app_command_error(self, interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
-        # Log full traceback
-        logging.error(f"An error occurred while executing a {error.command} command:")
-        logging.error("".join(traceback.format_exception(type(error), error, error.__traceback__)))
 
-        # Send error message to user
-        embed = ErrorEmbed("An unexpected error occurred while executing the command.", footer="Please contact ANO and report this bug")
-        if interaction.response.is_done():
-            await interaction.followup.send(embed=embed)
-        else:
-            await interaction.response.send_message(embed=embed)
+        logging.info("Bot is ready")
 
 
     async def close(self):
         await Database.close_pool()
         await super().close()
+
 
 
 def run_bot():

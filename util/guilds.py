@@ -1,6 +1,6 @@
 import asyncio
 
-from database.connection import Database
+from database import Database
 from typing import List, Tuple, MutableSet
 from util.requests import request
 import logging

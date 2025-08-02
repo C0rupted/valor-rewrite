@@ -5,7 +5,7 @@ from discord.ext import commands
 from PIL import Image, ImageFont, ImageDraw
 
 from datetime import datetime
-from database.connection import Database
+from database import Database
 
 from util.embeds import ErrorEmbed
 from util.formatting import human_format

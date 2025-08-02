@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
 
-from database.connection import Database
+from database import Database
 from util.embeds import PaginatedTextTableEmbed, ErrorEmbed
 from util.guilds import guild_name_from_tag
 from util.requests import request

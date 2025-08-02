@@ -1,6 +1,7 @@
-import aiomysql
+import aiomysql, logging
+
 from core.config import config
-import logging
+
 
 class Database:
     _pool = None
@@ -19,6 +20,7 @@ class Database:
             maxsize=10,
         )
         logging.info("Database connection pool established.")
+
 
     @classmethod
     async def close_pool(cls):

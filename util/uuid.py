@@ -1,6 +1,6 @@
 import asyncio
 
-from database.connection import Database
+from database import Database
 from util.requests import request
 
 def format_uuid(raw: str) -> str:

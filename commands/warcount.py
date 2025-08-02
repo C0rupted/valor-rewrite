@@ -3,7 +3,7 @@ import discord, time, logging
 from discord import app_commands
 from discord.ext import commands
 
-from database.connection import Database
+from database import Database
 from util.board import BoardView, build_board, WarcountBoardView, build_warcount_board
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
