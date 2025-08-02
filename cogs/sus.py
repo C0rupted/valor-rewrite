@@ -38,9 +38,12 @@ class Sus(commands.Cog):
 
         hypixel_data = await request(f"https://api.hypixel.net/player?uuid={id}", headers={"API-Key": config.HYPIXEL_API_KEY})
         hypixel_join = None
-        if hypixel_data["success"] and hypixel_data["player"] and hypixel_data["player"]["firstLogin"]:
-            hypixel_join = float(int(hypixel_data["player"]["firstLogin"] / 1000))
-        else:
+        try:
+            if hypixel_data["success"] and hypixel_data["player"] and hypixel_data["player"]["firstLogin"]:
+                hypixel_join = float(int(hypixel_data["player"]["firstLogin"] / 1000))
+            else:
+                return await interaction.followup.send(embed=ErrorEmbed("Hypixel API Issue"))
+        except KeyError:
             return await interaction.followup.send(embed=ErrorEmbed("Hypixel API Issue"))
 
         wynn_data = await request(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult")

@@ -97,7 +97,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
 
         if view.is_fancy:
             board = await build_board(view.data, view.page)
-            await interaction.followup.send(embed=None, view=view, file=board)
+            await interaction.followup.send(view=view, file=board)
         else:
             start = view.page * 10
             end = start + 10
@@ -107,7 +107,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
                 sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
 
             embed = TextTableEmbed([" Rank ", " Name ", " Value "], sliced, title=view.title, color=0x333333)
-            await interaction.followup.send(embed=embed, view=view, file=None)
+            await interaction.followup.send(embed=embed, view=view)
 
     @app_commands.command(name="dungeons", description="Dungeon leaderboards")
     @app_commands.describe(stat="Choose a dungeon to see its leaderboard")

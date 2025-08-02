@@ -7,7 +7,7 @@ from database.connection import Database
 from util.board import BoardView, build_board
 from util.embeds import ErrorEmbed, TextTableEmbed
 from util.guilds import guild_names_from_tags
-from util.ranges import get_range_from_string
+from util.ranges import get_range_from_string, range_alt
 
 
 
@@ -127,17 +127,17 @@ FROM (
 
         if view.is_fancy:
             board = await build_board(view.data, view.page, is_guild_board=(True if guild_wise else False))
-            await interaction.followup.send(embed=None, view=view, file=board)
+            await interaction.followup.send(view=view, file=board)
         else:
             start = view.page * 10
             end = start + 10
             sliced = view.data[start:end]
 
-            for i in range(len(sliced)):
+            for i in range_alt(len(sliced)):
                 sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
 
             embed = TextTableEmbed([" Rank ", " Name", " Raids "], sliced, title=view.title, color=0x333333)
-            await interaction.followup.send(embed=embed, view=view, file=None)
+            await interaction.followup.send(embed=embed, view=view)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(GRaids(bot))
