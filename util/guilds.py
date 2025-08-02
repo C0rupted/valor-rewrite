@@ -164,3 +164,23 @@ async def player_guild_from_uuid(uuid: str) -> str:
     result = await Database.fetch("SELECT joined FROM guild_join_log WHERE uuid=%s ORDER BY date DESC LIMIT 1", (uuid))
     guild = None if not result else result[0]["joined"]
     return guild
+
+async def player_guilds_from_uuids(uuids: list[str]) -> dict[str, str]:
+    if not uuids:
+        return {}
+
+    placeholders = ",".join(["%s"] * len(uuids))
+    query = f"""
+        SELECT uuid, joined
+        FROM guild_join_log
+        WHERE uuid IN ({placeholders})
+        ORDER BY date DESC
+    """
+    rows = await Database.fetch(query, tuple(uuids))
+
+    player_guilds = {}
+    for row in rows:
+        if row["uuid"] not in player_guilds:
+            player_guilds[row["uuid"]] = row["joined"]
+
+    return player_guilds

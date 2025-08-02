@@ -8,9 +8,9 @@ from core.config import config
 from database.connection import Database
 from util.embeds import ErrorEmbed, InfoEmbed, PaginatedTextTableEmbed
 from util.roles import is_ANO_titan_rank, is_ANO_chief
-from util.guilds import player_guild_from_uuid, guild_tag_from_name
+from util.guilds import player_guild_from_uuid, player_guilds_from_uuids
 from util.requests import request
-from util.uuid import get_name_from_uuid, get_uuid_from_name
+from util.uuid import get_name_from_uuid, get_uuid_from_name, get_names_from_uuids
 
 
 class Blacklist(commands.GroupCog, name="blacklist"):
@@ -24,17 +24,26 @@ class Blacklist(commands.GroupCog, name="blacklist"):
 
         res = await Database.fetch("SELECT uuid, timestamp FROM player_blacklist")
 
-        rows = []
+        uuids = []
+        dates = {}
         for result in res:
-            name = await get_name_from_uuid(result["uuid"])
-            guild = await player_guild_from_uuid(result["uuid"])
-            tag = await guild_tag_from_name(guild) if guild else "None"
-            date = datetime.fromtimestamp(result["timestamp"]).strftime("%d-%m-%Y")
-            rows.append([name, tag, date])
+            uuids.append(result["uuid"])
+            dates[result["uuid"]] = datetime.fromtimestamp(result["timestamp"]).strftime("%d-%m-%Y")
+
+        player_names = await get_names_from_uuids(uuids)
+        player_guilds = await player_guilds_from_uuids(uuids)
+
+        rows = []
+        for uuid in uuids:
+            try:
+                rows.append((player_names[uuid], player_guilds[uuid], dates[uuid]))
+            except KeyError:
+                #logging.warning(f"Error with UUID: {uuid}")
+                pass # There are way too many broken UUIDs that would spam logs. Uncomment above line if you want to see them all
 
         await PaginatedTextTableEmbed.send(
             interaction,
-            [" Name ", " Guild ", " Added "],
+            ["Name", "Current Guild", "Date Added"],
             rows,
             title="Blacklist",
             color=discord.Color.dark_red(),

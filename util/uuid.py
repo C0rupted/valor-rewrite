@@ -1,3 +1,5 @@
+import asyncio
+
 from database.connection import Database
 from util.requests import request
 
@@ -20,6 +22,7 @@ async def get_uuid_from_name(player: str) -> str | None:
     await Database.fetch("INSERT INTO uuid_name (uuid, name) VALUES (%s, %s)", (formatted, player))
     return formatted
 
+
 async def get_name_from_uuid(uuid: str):
     res = await Database.fetch("SELECT * FROM uuid_name WHERE uuid=%s LIMIT 1", (uuid))
 
@@ -34,3 +37,33 @@ async def get_name_from_uuid(uuid: str):
     await Database.fetch("INSERT INTO uuid_name VALUES (%s, %s)", (uuid, res["name"]))
     
     return res["name"]
+
+
+async def get_names_from_uuids(uuids: list[str]) -> dict[str, str]:
+    if not uuids:
+        return {}
+
+    # Look up existing cached names
+    placeholders = ",".join(["%s"] * len(uuids))
+    query = f"SELECT uuid, name FROM uuid_name WHERE uuid IN ({placeholders})"
+    rows = await Database.fetch(query, tuple(uuids))
+
+    names: dict[str, str] = {row["uuid"]: row["name"] for row in rows}
+    missing = [uuid for uuid in uuids if uuid not in names]
+
+    # Query Mojang API for any missing UUIDs
+    if missing:
+        fetched = await asyncio.gather(*(request(f"https://api.mojang.com/user/profile/{uuid.replace('-', '')}") for uuid in missing))
+
+        inserts = []
+        for uuid, res in zip(missing, fetched):
+            if res and "name" in res:
+                names[uuid] = res["name"]
+                inserts.append((uuid, res["name"]))
+
+        # Step 3: Cache new entries
+        if inserts:
+            for insert in inserts:
+                await Database.fetch("INSERT INTO uuid_name (uuid, name) VALUES (%s, %s)", insert)
+
+    return names
