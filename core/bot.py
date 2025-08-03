@@ -29,7 +29,6 @@ class ValorBot(commands.Bot):
 
     async def load_extensions(self):
         extensions = [
-            "commands.activity",
             "commands.admin",
             "commands.annihilation_tracker",
             "commands.average",
@@ -43,7 +42,6 @@ class ValorBot(commands.Bot):
             "commands.leaderboard",
             "commands.map",
             "commands.oceantrials",
-            "commands.online",
             "commands.pings",
             "commands.pools",
             "commands.profile",
