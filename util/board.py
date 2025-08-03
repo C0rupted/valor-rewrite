@@ -11,7 +11,7 @@ from util.requests import fetch_player_busts
 FONT_PATH = "assets/fonts/MinecraftRegular.ttf"
 
 class BoardView(discord.ui.View):
-    def __init__(self, user_id, data: list[tuple[str, int]], title: str = "Leaderboard", max_page: int = 9999999, stat_counter: str = "Value", is_guild_board: bool = False, use_text_embed: bool = True, headers: list[str] = None):
+    def __init__(self, user_id, data: list[tuple[str, int]], title: str = "Leaderboard", max_page: int = 50, stat_counter: str = "Value", is_guild_board: bool = False, use_text_embed: bool = True, headers: list[str] = None):
         super().__init__()
         self.user_id = user_id
         self.data = data

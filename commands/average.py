@@ -4,7 +4,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from database import Database
-from util.embeds import TextTableEmbed, ErrorEmbed
+from util.embeds import TextTableEmbed, ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
 from util.ranges import get_range_from_string
 
@@ -52,12 +52,14 @@ class AvgCog(commands.Cog):
 
         # Format output
         table = [[row["guild"], f"{row['avg_count']:.1f}"] for row in rows]
-        title = f"Average Member Count ({range or '7 days'})"
-        if unidentified:
-            title += f"\nUnidentified: {' '.join(unidentified)}"
 
-        embed = TextTableEmbed([" Guild ", " Avg Online "], table, title=title)
-        await interaction.followup.send(embed=embed)
+        await PaginatedTextTableEmbed.send(
+            interaction,
+            ["Guild", "Avg Players Online"],
+            table,
+            title=f"Average Member Count ({range or '7 days'})",
+            rows_per_page=25
+        )
 
 async def setup(bot):
     await bot.add_cog(AvgCog(bot))

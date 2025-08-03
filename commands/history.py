@@ -1,14 +1,12 @@
 import discord
-
 from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
 
 from database import Database
-from util.embeds import ErrorEmbed, TextTableEmbed, PaginatedTextTable
+from util.embeds import ErrorEmbed, PaginatedTextTable
 from util.requests import request
 from util.uuid import get_uuid_from_name
-
 
 
 class History(commands.Cog):
@@ -24,17 +22,16 @@ class History(commands.Cog):
         if not uuid:
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 
-        # Fetch join and activity records
+        # Fetch from both tables
         join_logs = await Database.fetch(
-            "SELECT old, old_rank, joined, date FROM guild_join_log WHERE uuid=%s ORDER BY date DESC", (uuid)
+            "SELECT * FROM guild_join_log WHERE uuid=%s ORDER BY date DESC", (uuid)
         )
         activity_logs = await Database.fetch(
-            "SELECT guild, timestamp FROM activity_members WHERE name=%s ORDER BY timestamp DESC LIMIT 50", (username)
+            "SELECT * FROM activity_members WHERE uuid=%s ORDER BY timestamp DESC", (uuid)
         )
 
         if not join_logs and not activity_logs:
-            await interaction.followup.send(embed=ErrorEmbed("No guild history found for this player."))
-            return
+            return await interaction.followup.send(embed=ErrorEmbed("No guild history found for this player."))
 
         # Process raw DB data
         combined = []
@@ -112,6 +109,7 @@ class History(commands.Cog):
             title=f"Guild History of {username}",
             rows_per_page=15
         )
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(History(bot))
