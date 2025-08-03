@@ -132,7 +132,7 @@ class SettingsView(discord.ui.View):
         super().__init__(timeout=60)
         self.user = interaction.user
         self.key = key
-        self.target_id = interaction.user.id
+        self.target_id = interaction.guild.id if scope == "guild" else interaction.user.id
         self.scope = scope
         self.manager = SettingsManager(self.scope, self.target_id)
         self.interaction = interaction
@@ -141,24 +141,25 @@ class SettingsView(discord.ui.View):
         type_ = schema["type"]
 
         if type_ in ["text", "number"]:
-            self.add_item(SetButton(self.user, key, self.target_id, scope, interaction))
+            self.add_item(SetButton(self.user, key, self.target_id, scope, interaction, self.manager))
         elif type_ == "bool":
-            self.add_item(BoolButton(self.user, key, self.target_id, scope, interaction))
+            self.add_item(BoolButton(self.user, key, self.target_id, scope, interaction, self.manager))
         elif type_ == "list":
-            self.add_item(AddButton(self.user, key, self.target_id, scope, interaction))
-            self.add_item(RemoveButton(self.user, key, self.target_id, scope, interaction))
+            self.add_item(AddButton(self.user, key, self.target_id, scope, interaction, self.manager))
+            self.add_item(RemoveButton(self.user, key, self.target_id, scope, interaction, self.manager))
 
-        self.add_item(ResetButton(self.user, key, self.target_id, scope, interaction))
+        self.add_item(ResetButton(self.user, key, self.target_id, scope, interaction, self.manager))
     
 
 class SetButton(discord.ui.Button):
-    def __init__(self, user, key, target_id, scope, interaction):
+    def __init__(self, user, key, target_id, scope, interaction, manager):
         super().__init__(label="Set Value", style=discord.ButtonStyle.primary)
         self.user = user
         self.key = key
         self.target_id = target_id
         self.scope = scope
         self.original_interaction = interaction
+        self.manager = manager
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.user.id:
@@ -168,25 +169,25 @@ class SetButton(discord.ui.Button):
         if "choices" in schema:
             await interaction.response.send_message(view=ChoiceView(self.user, self.key, self.target_id, self.scope, self.original_interaction), ephemeral=True)
         else:
-            await interaction.response.send_modal(ValueModal(self.user, SettingsManager(self.scope, self.target_id), self.key, self.target_id, self.scope, self.original_interaction))
+            await interaction.response.send_modal(ValueModal(self.user, self.manager, self.key, self.target_id, self.scope, self.original_interaction))
 
 
 class BoolButton(discord.ui.Button):
-    def __init__(self, user, key, target_id, scope, interaction):
+    def __init__(self, user, key, target_id, scope, interaction, manager):
         super().__init__(label="Toggle Setting", style=discord.ButtonStyle.primary)
         self.user = user
         self.key = key
         self.target_id = target_id
         self.scope = scope
         self.original_interaction = interaction
+        self.manager = manager
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.user.id:
             return await interaction.response.send_message("Only the command user can press this button.", ephemeral=True)
         
-        manager = SettingsManager(self.scope, self.target_id)
-        b = not manager.get(self.key)
-        manager.set(self.key, b)
+        b = not self.manager.get(self.key)
+        self.manager.set(self.key, b)
 
         updated_embed = await construct_embed(self.key, self.target_id, self.scope)
         await self.original_interaction.edit_original_response(
@@ -198,43 +199,46 @@ class BoolButton(discord.ui.Button):
 
 
 class AddButton(discord.ui.Button):
-    def __init__(self, user, key, target_id, scope, interaction):
+    def __init__(self, user, key, target_id, scope, interaction, manager):
         super().__init__(label="Add Value", style=discord.ButtonStyle.success)
         self.user = user
         self.key = key
         self.target_id = target_id
         self.scope = scope
         self.original_interaction = interaction
+        self.manager = manager
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.user.id:
             return await interaction.response.send_message("Only the command user can press this button.", ephemeral=True)
-        await interaction.response.send_modal(ValueModal(self.user, SettingsManager(self.scope, self.target_id), self.key, self.target_id, self.scope, self.original_interaction, field_label="Value to add", is_list=True))
+        await interaction.response.send_modal(ValueModal(self.user, self.manager, self.key, self.target_id, self.scope, self.original_interaction, field_label="Value to add", is_list=True))
 
 
 class RemoveButton(discord.ui.Button):
-    def __init__(self, user, key, target_id, scope, interaction):
+    def __init__(self, user, key, target_id, scope, interaction, manager):
         super().__init__(label="Remove Value", style=discord.ButtonStyle.danger)
         self.user = user
         self.key = key
         self.target_id = target_id
         self.scope = scope
         self.original_interaction = interaction
+        self.manager = manager
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.user.id:
             return await interaction.response.send_message("Only the command user can press this button.", ephemeral=True)
-        await interaction.response.send_modal(ValueModal(self.user, SettingsManager(self.scope, self.target_id), self.key, self.target_id, self.scope, self.original_interaction, field_label="Value to remove", is_list=True, list_add_or_remove="remove"))
+        await interaction.response.send_modal(ValueModal(self.user, self.manager, self.key, self.target_id, self.scope, self.original_interaction, field_label="Value to remove", is_list=True, list_add_or_remove="remove"))
 
 
 class ResetButton(discord.ui.Button):
-    def __init__(self, user, key, target_id, scope, interaction):
+    def __init__(self, user, key, target_id, scope, interaction, manager):
         super().__init__(label="Reset to Default", style=discord.ButtonStyle.secondary)
         self.user = user
         self.key = key
         self.target_id = target_id
         self.scope = scope
         self.original_interaction = interaction
+        self.manager = manager
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.user.id:
@@ -242,7 +246,7 @@ class ResetButton(discord.ui.Button):
         
         await interaction.response.send_message(
             embed=InfoEmbed("Are you sure you want to reset this setting to default?"),
-            view=ConfirmResetView(self.user, SettingsManager(self.scope, self.target_id), self.key, self.target_id, self.scope, self.original_interaction),
+            view=ConfirmResetView(self.user, self.manager, self.key, self.target_id, self.scope, self.original_interaction),
             ephemeral=True
         )
 
@@ -295,7 +299,7 @@ class SettingsCommands(commands.Cog):
         if not schema:
             return await interaction.response.send_message("Invalid setting selected.", ephemeral=True)
 
-        embed = await construct_embed(setting, interaction.user.id, "guild")
+        embed = await construct_embed(setting, interaction.guild.id, "guild")
         await interaction.response.send_message(
             embed=embed,
             view=SettingsView(interaction, setting, "guild")

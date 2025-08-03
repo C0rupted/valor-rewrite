@@ -7,14 +7,14 @@ SettingType = Literal["number", "boolean", "text", "list"]
 SETTINGS_SCHEMAS = {
     # All of these are silly random settings, they will be changed.
     "user": {
-        "preferred_leaderboard_output_type": {"type": "text", "default": "image", "choices": ["image", "text"], "description": "The output type preferred for leaderboard-like commands such as /leaderboard, /guild_raids and /warcount"}, # only useful setting, yet to be implemented
+        "preferred_leaderboard_output_type": {"type": "text", "default": "image", "choices": ["image", "text"], "description": "The output type preferred for leaderboard-like commands such as /leaderboard, /graids and /warcount"}, # only useful setting, yet to be implemented
         "theme": {"type": "text", "default": "light", "choices": ["light", "dark", "purple"]},
-        "favorite_numbers": {"type": "list", "default": []},
+        #"favorite_numbers": {"type": "list", "default": []},          example
     },
     "guild": {
-        "welcome_enabled": {"type": "bool", "default": False},
-        "welcome_channel": {"type": "text", "default": ""},
-        "max_strikes": {"type": "number", "default": 3, "choices": [1, 2, 3, 4, 5]},
+        "guild_name": {"type": "text", "default": "",  "description": "The default guild name used for commands such as /guild"},
+        "guild_tag": {"type": "text", "default": "",  "description": "The default guild tag used for commands such as /guild "},
+        #"max_strikes": {"type": "number", "default": 3, "choices": [1, 2, 3, 4, 5]},      example
     }
 }
 

@@ -1,7 +1,7 @@
-import discord
+import discord, time
+
 from discord.ext import commands
 from discord import app_commands
-import time
 
 from core.config import config
 from database import Database

@@ -3,6 +3,7 @@ import discord, datetime, logging
 from discord.ext import commands
 from discord import app_commands
 
+from core.settings import SettingsManager
 from util.embeds import ErrorEmbed, TextTableEmbed, PaginatedTextTableEmbed, PaginatedFieldedTextTableEmbed
 from util.guilds import guild_name_from_tag
 from util.mappings import RANK_SYMBOL_MAP
@@ -10,9 +11,20 @@ from util.requests import request
 
 
 
-async def get_data(guild_tag: str):
-    name = await guild_name_from_tag(guild_tag)
-    return await request(f"https://api.wynncraft.com/v3/guild/{name}")
+async def get_data(guild: str, interaction: discord.Interaction):
+    if not guild:
+        guild_name = SettingsManager("guild", interaction.guild.id).get("guild_name")
+        guild_tag = SettingsManager("guild", interaction.guild.id).get("guild_tag")
+
+        if not (guild_name and guild_tag): return "warn"
+        return await request(f"https://api.wynncraft.com/v3/guild/{guild_name}")
+
+    name = await guild_name_from_tag(guild) or guild
+    res = await request(f"https://api.wynncraft.com/v3/guild/{name}")
+    if not res:
+        res = await request(f"https://api.wynncraft.com/v3/guild/prefix/{guild}")
+    
+    return res
 
 
 async def get_online(data, return_embed: bool = False):
@@ -47,11 +59,15 @@ class GuildCommands(commands.GroupCog, name="guild"):
 
 
     @app_commands.command(name="overview", description="View basic guild info")
-    @app_commands.describe(guild="The guild prefix of the target guild")
-    async def overview(self, interaction: discord.Interaction, guild: str):
+    @app_commands.describe(guild="The guild name or prefix of the target guild")
+    async def overview(self, interaction: discord.Interaction, guild: str = None):
         await interaction.response.defer()
 
-        data = await get_data(guild)
+        data = await get_data(guild, interaction)
+        if data == "warn":
+            return await interaction.followup.send(embed=ErrorEmbed("Default guild name and tag have not been set. Please get an admin to run `/guild_settings` and set it."))
+        if not data:
+            return await interaction.followup.send(embed=ErrorEmbed("Error fetching guild data"))
 
         desc = f"""```properties
 Name: {data["name"]} [{data["prefix"]}]
@@ -71,21 +87,30 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
 
 
     @app_commands.command(name="online", description="View online players of the guild")
-    @app_commands.describe(guild="The guild prefix of the target guild")
-    async def online(self, interaction: discord.Interaction, guild: str):
+    @app_commands.describe(guild="The guild name or prefix of the target guild")
+    async def online(self, interaction: discord.Interaction, guild: str = None):
         await interaction.response.defer()
 
-        data = await get_data(guild)
+        data = await get_data(guild, interaction)
+        if data == "warn":
+            return await interaction.followup.send(embed=ErrorEmbed("Default guild name and tag have not been set. Please get an admin to run `/guild_settings` and set it."))
+        if not data:
+            return await interaction.followup.send(embed=ErrorEmbed("Error fetching guild data"))
         embed = await get_online(data, return_embed=True)
 
         await interaction.followup.send(embed=embed)
 
 
     @app_commands.command(name="members", description="View a list of all players in a guild")
-    async def members(self, interaction: discord.Interaction, guild: str):
+    @app_commands.describe(guild="The guild name or prefix of the target guild")
+    async def members(self, interaction: discord.Interaction, guild: str = None):
         await interaction.response.defer()
 
-        data = await get_data(guild)
+        data = await get_data(guild, interaction)
+        if data == "warn":
+            return await interaction.followup.send(embed=ErrorEmbed("Default guild name and tag have not been set. Please get an admin to run `/guild_settings` and set it."))
+        if not data:
+            return await interaction.followup.send(embed=ErrorEmbed("Error fetching guild data"))
         sections = {}
 
         for rank, players in data["members"].items():
@@ -111,10 +136,15 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
 
 
     @app_commands.command(name="gxp", description="View the GXP contributions of each player in a guild")
-    async def gxp(self, interaction: discord.Interaction, guild: str):
+    @app_commands.describe(guild="The guild name or prefix of the target guild")
+    async def gxp(self, interaction: discord.Interaction, guild: str = None):
         await interaction.response.defer()
 
-        data = await get_data(guild)
+        data = await get_data(guild, interaction)
+        if data == "warn":
+            return await interaction.followup.send(embed=ErrorEmbed("Default guild name and tag have not been set. Please get an admin to run `/guild_settings` and set it."))
+        if not data:
+            return await interaction.followup.send(embed=ErrorEmbed("Error fetching guild data"))
         rows = []
 
         for rank in data["members"]:
