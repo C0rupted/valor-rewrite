@@ -5,7 +5,7 @@ from discord.ext import commands
 from datetime import datetime
 
 from database import Database
-from util.embeds import ErrorEmbed, TextTableEmbed
+from util.embeds import ErrorEmbed, TextTableEmbed, PaginatedTextTable
 from util.requests import request
 from util.uuid import get_uuid_from_name
 
@@ -105,12 +105,13 @@ class History(commands.Cog):
             leave_str = datetime.fromtimestamp(leave).strftime("%d %b %Y %H:%M") if leave else "N/A"
             rows.append([guild, rank, join_str, leave_str])
 
-        embed = TextTableEmbed(
-            headers=[" Guild ", " Rank ", " Join Date ", " Leave Date "],
-            rows=rows,
+        await PaginatedTextTable.send(
+            interaction,
+            ["Guild", "Rank", "Join Date", "Leave Date"],
+            rows,
+            title=f"Guild History of {username}",
+            rows_per_page=15
         )
-
-        await interaction.followup.send(f"```isbl\nGuild History of {username}\n \n{embed.description[8:]}")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(History(bot))

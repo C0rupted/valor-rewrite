@@ -41,7 +41,9 @@ async def get_online(data, return_embed: bool = False):
     ]
 
     if not online_members:
-        return "There are no members online."
+        if return_embed: return discord.Embed(title=f"Members of {data["name"]} online (0)", description="```isbl\nThere are no members online.\n```", color=0x7785cc)
+        else: return "```isbl\nThere are no members online.\n```" 
+        
 
     embed = TextTableEmbed(
             [" Name ", " Rank ", " World "],

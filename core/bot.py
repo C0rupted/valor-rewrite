@@ -14,7 +14,7 @@ class ValorBot(commands.Bot):
         intents.members = True
 
         super().__init__(
-            command_prefix="",  # Slash-only, no text prefix at all
+            command_prefix="stupidlylongstringthatnoonewilltypeout",  # Slash-only, no text prefix at all
             intents=intents,
             help_command=None,
             log_handler=None
