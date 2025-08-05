@@ -2,6 +2,7 @@ import discord, logging
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from database import Database
 from util.board import BoardView, build_board
 from util.embeds import ErrorEmbed, TextTableEmbed
@@ -111,6 +112,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
 
     @app_commands.command(name="dungeons", description="Dungeon leaderboards")
     @app_commands.describe(stat="Choose a dungeon to see its leaderboard")
+    @rate_limit_check()
     async def leaderboard_dungeons(self, interaction: discord.Interaction, stat: str):
         await self.display_leaderboard(interaction, "dungeons", stat)
 
@@ -120,6 +122,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
 
     @app_commands.command(name="raids", description="Raid leaderboards")
     @app_commands.describe(stat="Choose a raid to see its leaderboard")
+    @rate_limit_check()
     async def leaderboard_raids(self, interaction: discord.Interaction, stat: str):
         await self.display_leaderboard(interaction, "raids", stat)
 
@@ -129,6 +132,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
 
     @app_commands.command(name="professions", description="Profession leaderboards")
     @app_commands.describe(stat="Choose a profession to see its leaderboard")
+    @rate_limit_check()
     async def leaderboard_professions(self, interaction: discord.Interaction, stat: str):
         await self.display_leaderboard(interaction, "professions", stat)
 
@@ -138,6 +142,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
 
     @app_commands.command(name="player_stats", description="General player stat leaderboards")
     @app_commands.describe(stat="Choose a player stat to see its leaderboard")
+    @rate_limit_check()
     async def leaderboard_misc(self, interaction: discord.Interaction, stat: str):
         await self.display_leaderboard(interaction, "player_stats", stat)
 
@@ -147,6 +152,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
 
     @app_commands.command(name="season_rating", description="Guild Season rating leaderboard")
     @app_commands.describe(season="Pick a season to see its leaderboard (defaults to current season)")
+    @rate_limit_check()
     async def season_ratings(self, interaction: discord.Interaction, season: int = None):
         await interaction.response.defer()
 

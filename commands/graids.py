@@ -3,6 +3,7 @@ import discord, logging
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from database import Database
 from util.board import BoardView, build_board
 from util.embeds import ErrorEmbed, TextTableEmbed
@@ -22,6 +23,7 @@ class GRaids(commands.Cog):
         players="Filter by player usernames (comma-separated)",
         guild_wise="Show raid totals per guild instead of individual players"
     )
+    @rate_limit_check
     async def graids(self, interaction: discord.Interaction, guilds: str = None, range: str = "7", players: str = None, guild_wise: bool = False):
         await interaction.response.defer()
 

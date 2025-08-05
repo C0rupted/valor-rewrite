@@ -2,6 +2,7 @@ import discord, math, time, logging
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from core.config import config
 from database import Database
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
@@ -73,6 +74,7 @@ class Tickets(commands.Cog):
     #@app_commands.describe(
     #    range="Number of days ago, or a range like '0,7', or season name like 'season26' (defaults to most recent Monday)",
     #)
+    @rate_limit_check()
     async def tickets(self, interaction: discord.Interaction): #range: str = None):
         await interaction.response.defer()
 

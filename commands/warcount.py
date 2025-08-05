@@ -3,6 +3,7 @@ import discord, time, logging
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from database import Database
 from util.board import BoardView, build_board, WarcountBoardView, build_warcount_board
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
@@ -24,6 +25,7 @@ class Warcount(commands.Cog):
         classes="Filter by classes (comma-separated)",
         guild_wise="Show wars total per guild instead of individual players"
     )
+    @rate_limit_check()
     async def warcount(self, interaction: discord.Interaction,  guilds: str = None, range: str = "7", players: str = None, classes: str = None, guild_wise: bool = False):
         await interaction.response.defer()
 

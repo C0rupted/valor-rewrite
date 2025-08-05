@@ -3,6 +3,7 @@ import discord, datetime, logging
 from discord.ext import commands
 from discord import app_commands
 
+from core.antispam import rate_limit_check
 from database import Database
 from core.settings import SettingsManager
 from util.embeds import ErrorEmbed, TextTableEmbed, PaginatedTextTableEmbed, PaginatedFieldedTextTableEmbed
@@ -140,6 +141,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
 
     @app_commands.command(name="gxp", description="View the GXP contributions of each player in a guild")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
+    @rate_limit_check()
     async def gxp(self, interaction: discord.Interaction, guild: str = None):
         await interaction.response.defer()
 
@@ -175,6 +177,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
         app_commands.Choice(name="Ascending", value="asc"),
         app_commands.Choice(name="Descending", value="desc")
     ])
+    @rate_limit_check()
     async def activity(self, interaction: discord.Interaction, guild: str = None, order: app_commands.Choice[str] = "desc"):
         await interaction.response.defer()
 

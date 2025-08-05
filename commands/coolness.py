@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from core.antispam import rate_limit_check
 from database import Database
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
@@ -24,6 +25,7 @@ class Coolness(commands.Cog):
         app_commands.Choice(name="Ascending", value="ASC"),
         app_commands.Choice(name="Descending", value="DESC"),
     ])
+    @rate_limit_check()
     async def coolness(self, interaction: discord.Interaction, guilds: str, range: str = "7", order: app_commands.Choice[str] = "DESC"):
         await interaction.response.defer()
 

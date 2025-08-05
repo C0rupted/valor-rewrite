@@ -3,6 +3,7 @@ import discord, time
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from database import Database
 from util.embeds import TextTableEmbed, ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
@@ -18,6 +19,7 @@ class AvgCog(commands.Cog):
         guilds="Filter by guild tags (comma-separated)",
         range="Number of days ago, or a range like '0,7'",
     )
+    @rate_limit_check()
     async def average(self, interaction: discord.Interaction, guilds: str = None, range: str = "7"):
         await interaction.response.defer()
 

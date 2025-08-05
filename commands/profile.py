@@ -7,6 +7,7 @@ from PIL import Image, ImageFont, ImageDraw
 from datetime import datetime
 from database import Database
 
+from core.antispam import rate_limit_check
 from util.embeds import ErrorEmbed
 from util.formatting import human_format
 from util.ranks import get_war_rank, get_xp_rank
@@ -156,6 +157,7 @@ class Profile(commands.Cog):
         return img
 
     @app_commands.command(name="profile", description="Display a profile card for a player")
+    @rate_limit_check()
     async def profile(self, interaction: discord.Interaction, username: str):
         await interaction.response.defer()
 
