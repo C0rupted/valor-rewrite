@@ -8,7 +8,7 @@ from util.board import BoardView, build_board, WarcountBoardView, build_warcount
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
 from util.mappings import CLASS_RESKINS_MAP
-from util.ranges import get_range_from_string, range_alt
+from util.ranges import get_range_from_string, range_alt, RangeTooLargeError
 
 
 
@@ -31,7 +31,12 @@ class Warcount(commands.Cog):
             return await interaction.followup.send(embed=ErrorEmbed("You cannot use `guild_wise` together with `players` or `guilds` or `classes`."))
 
         # Handle input parsing
-        left, right = await get_range_from_string(range)
+        range = await get_range_from_string(range, max_allowed_range=None)
+
+        if not range:
+            return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
+        
+        left, right = range
         guild_filter = [g.strip() for g in guilds.split(",")] if guilds else []
         names = [x.strip().lower() for x in players.split(",")] if players else None
         listed_classes = [c.strip().upper() for c in classes.split(",")] if classes else ["ARCHER", "WARRIOR", "MAGE", "ASSASSIN", "SHAMAN"]

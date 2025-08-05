@@ -7,7 +7,7 @@ from database import Database
 from util.board import BoardView, build_board
 from util.embeds import ErrorEmbed, TextTableEmbed
 from util.guilds import guild_names_from_tags
-from util.ranges import get_range_from_string, range_alt
+from util.ranges import get_range_from_string, range_alt, RangeTooLargeError
 
 
 
@@ -23,16 +23,16 @@ class GRaids(commands.Cog):
         guild_wise="Show raid totals per guild instead of individual players"
     )
     async def graids(self, interaction: discord.Interaction, guilds: str = None, range: str = "7", players: str = None, guild_wise: bool = False):
-        if guild_wise and (players or guilds):
-            return await interaction.response.send_message(
-                embed=ErrorEmbed("You cannot use `guild_wise` together with `players` or `guilds`."),
-                ephemeral=True
-            )
+        await interaction.response.defer()
 
-        range = await get_range_from_string(range)
+        if guild_wise and (players or guilds):
+            return await interaction.followup.send(embed=ErrorEmbed("You cannot use `guild_wise` together with `players` or `guilds`."))
+
+        range = await get_range_from_string(range, max_allowed_range=None)
 
         if not range:
-            return await interaction.response.send_message(embed=ErrorEmbed("Invalid range input"), ephemeral=True)
+            return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
+
         
         prepared_params = [range[0], range[1]]
 
@@ -107,8 +107,6 @@ FROM (
             tags, _ = await guild_names_from_tags(tags)
             template_query_params["GUILD_CLAUSE"] = "AND A.guild IN (" + ",".join(["%s"] * len(tags)) + ")"
             prepared_params.extend(tags)
-
-        await interaction.response.defer()
 
         query = template_query.format(**template_query_params)
         result = await Database.fetch(query, prepared_params)

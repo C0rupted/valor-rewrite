@@ -4,6 +4,10 @@ from typing import Tuple, Union
 from database import Database 
 
 
+class RangeTooLargeError(Exception):
+    """Raised when the requested range exceeds the maximum allowed days."""
+    pass
+
 
 async def get_range_from_season(season_name: str) -> Union[Tuple[float, float], None]:
     if '-' in season_name:
@@ -23,7 +27,7 @@ async def get_range_from_season(season_name: str) -> Union[Tuple[float, float], 
     return start_ts, end_ts
 
 
-async def get_range_from_string(range_input: str) -> Union[Tuple[float, float], None]:
+async def get_range_from_string(range_input: str, max_allowed_range: int = 50) -> Union[Tuple[float, float], None]:
     """
     Parses a string input into two UTC timestamps (left, right).
     
@@ -40,27 +44,31 @@ async def get_range_from_string(range_input: str) -> Union[Tuple[float, float], 
         season_range = await get_range_from_season(range_input)
         if season_range is None:
             return None
-        
-        left, right = season_range
-        return left, right
 
-    try:
-        # Parse number ranges
-        parts = [p.strip() for p in range_input.split(',') if p.strip()]
-        if len(parts) == 1:
-            left_days = float(parts[0])
-            right_days = 0.0
-        elif len(parts) == 2:
-            right_days = float(parts[0])
-            left_days = float(parts[1])
-        else:
+        left, right = season_range
+    else:
+        try:
+            parts = [p.strip() for p in range_input.split(',') if p.strip()]
+            if len(parts) == 1:
+                left_days = float(parts[0])
+                right_days = 0.0
+            elif len(parts) == 2:
+                right_days = float(parts[0])
+                left_days = float(parts[1])
+            else:
+                return None
+
+            left = now - left_days * 86400
+            right = now - right_days * 86400
+        except ValueError:
             return None
 
-        left = now - left_days * 86400
-        right = now - right_days * 86400
-        return left, right
-    except ValueError:
-        return None
+    delta_days = abs(right - left) / 86400
+    if max_allowed_range:
+        if delta_days > max_allowed_range:
+            raise RangeTooLargeError(f"Range exceeds the allowed limit of {max_allowed_range} days.")
+
+    return left, right
 
 
 def range_alt(_range: int):

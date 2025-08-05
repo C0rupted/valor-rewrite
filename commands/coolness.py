@@ -6,7 +6,7 @@ from discord import app_commands
 from database import Database
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
-from util.ranges import get_range_from_string
+from util.ranges import get_range_from_string, RangeTooLargeError
 
 
 
@@ -34,7 +34,10 @@ class Coolness(commands.Cog):
         if not guild_names:
             return await interaction.followup.send(embed=ErrorEmbed("Guilds not found."), ephemeral=True)
 
-        range = await get_range_from_string(range)
+        try:
+            range = await get_range_from_string(range)
+        except RangeTooLargeError:
+            return await interaction.followup.send(embed=ErrorEmbed("Range exceeds maximum range of 50 days."))
 
         if not range:
             return await interaction.response.send_message(embed=ErrorEmbed("Invalid range input"), ephemeral=True)

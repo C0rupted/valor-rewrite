@@ -6,7 +6,7 @@ from discord.ext import commands
 from database import Database
 from util.embeds import TextTableEmbed, ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
-from util.ranges import get_range_from_string
+from util.ranges import get_range_from_string, RangeTooLargeError
 
 
 class AvgCog(commands.Cog):
@@ -18,16 +18,21 @@ class AvgCog(commands.Cog):
         guilds="Filter by guild tags (comma-separated)",
         range="Number of days ago, or a range like '0,7'",
     )
-    async def average(self, interaction: discord.Interaction, guilds: str = None, range: str = None):
+    async def average(self, interaction: discord.Interaction, guilds: str = None, range: str = "7"):
         await interaction.response.defer()
 
         now = time.time()
 
         # Parse range
         try:
-            left_days, right_days = await get_range_from_string(range or "7")
-        except ValueError as e:
-            return await interaction.followup.send(embed=ErrorEmbed(str(e)))
+            range_values = await get_range_from_string(range)
+        except RangeTooLargeError:
+            return await interaction.followup.send(embed=ErrorEmbed("Range exceeds maximum range of 50 days."))
+
+        if not range_values:
+            return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
+        
+        left_days, right_days = range_values
 
         # Parse guild tags
         query = "SELECT guild, ROUND(AVG(count), 1) AS avg_count FROM guild_member_count WHERE time >= %s AND time <= %s"
@@ -35,7 +40,7 @@ class AvgCog(commands.Cog):
         unidentified = []
 
         if guilds:
-            tags = guilds.split()
+            tags = guilds.split(",")
             names, unidentified = await guild_names_from_tags(tags)
             if not names:
                 return await interaction.followup.send(embed=ErrorEmbed(f"Unknown guilds: {' '.join(unidentified)}"))
