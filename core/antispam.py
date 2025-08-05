@@ -7,7 +7,7 @@ from collections import defaultdict, deque
 MAX_CALLS_PER_MINUTE = 10
 LOCK_DURATION = 180  # seconds
 
-command_usage = defaultdict(lambda: deque(maxlen=3))
+command_usage = defaultdict(lambda: deque(maxlen=11))
 locked_users = []
 lock_expiry = {}
 
