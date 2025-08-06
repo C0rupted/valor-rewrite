@@ -17,7 +17,8 @@ class ValorBot(commands.Bot):
             command_prefix="stupidlylongstringthatnoonewilltypeout",  # Slash-only, no text prefix at all
             intents=intents,
             help_command=None,
-            log_handler=None
+            log_handler=None,
+            allowed_mentions=discord.AllowedMentions(roles=True)
         )
 
 
