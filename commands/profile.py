@@ -12,7 +12,7 @@ from util.embeds import ErrorEmbed
 from util.formatting import human_format
 from util.ranks import get_war_rank, get_xp_rank
 from util.requests import request
-from util.uuid import get_uuid_from_name
+from util.uuid import get_uuid_from_name, detect_uuid_or_name
 
 class Profile(commands.Cog):
     def __init__(self, bot):
@@ -46,7 +46,7 @@ class Profile(commands.Cog):
                     "hero": 110,
                     "champion": 175
                 }.get(data['supportRank'], 0)
-        draw.text((21 + offset, 24), username, white, name_font)
+        draw.text((21 + offset, 24), data["username"], white, name_font)
 
         # Get and draw character model
         tmp_path = f"/tmp/{username}_model.png"
@@ -157,12 +157,20 @@ class Profile(commands.Cog):
         return img
 
     @app_commands.command(name="profile", description="Display a profile card for a player")
+    @app_commands.describe(username="Username or uuid of targeted player")
     @rate_limit_check()
     async def profile(self, interaction: discord.Interaction, username: str):
         await interaction.response.defer()
 
         # Get player UUID and confirm player exists
-        uuid = await get_uuid_from_name(username)
+        input_type = detect_uuid_or_name(username)
+        if input_type == "uuid":
+            uuid = username
+        elif input_type == "name":
+            uuid = await get_uuid_from_name(username)
+        else:
+            return await interaction.followup.send(embed=ErrorEmbed("Invalid input."))
+        
         if not uuid:
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 

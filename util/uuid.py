@@ -1,4 +1,4 @@
-import asyncio
+import asyncio, re
 
 from database import Database
 from util.requests import request
@@ -67,3 +67,30 @@ async def get_names_from_uuids(uuids: list[str]) -> dict[str, str]:
                 await Database.fetch("INSERT INTO uuid_name (uuid, name) VALUES (%s, %s)", insert)
 
     return names
+
+
+
+def detect_uuid_or_name(value: str) -> str:
+    """
+    Determines if the input string is a Minecraft username or UUID.
+    
+    Returns:
+        "uuid" if it's a UUID (with or without dashes),
+        "name" if it's a valid Minecraft username,
+        "invalid" if it's neither.
+    """
+
+    # UUID pattern (with or without dashes)
+    uuid_regex = re.compile(
+        r"^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    )
+
+    # Minecraft username: 3–16 chars, alphanumeric + underscore
+    username_regex = re.compile(r"^[a-zA-Z0-9_]{3,16}$")
+
+    if uuid_regex.match(value):
+        return "uuid"
+    elif username_regex.match(value):
+        return "name"
+    else:
+        return "invalid"
