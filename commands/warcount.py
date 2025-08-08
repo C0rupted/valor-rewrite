@@ -20,25 +20,25 @@ class Warcount(commands.Cog):
     @app_commands.command(name="warcount", description="War count leaderboard.")
     @app_commands.describe(
         guilds="Filter by guild tags (comma-separated)",
-        range="Number of days ago, or a range like '0,7', or season name like 'season26' (defaults to 7 days)",
+        range="Number of days ago, or a range like '0,7', or season name like 'season26' (defaults to all time)",
         players="Filter by player usernames (comma-separated)",
         classes="Filter by classes (comma-separated)",
         guild_wise="Show wars total per guild instead of individual players"
     )
     @rate_limit_check()
-    async def warcount(self, interaction: discord.Interaction,  guilds: str = None, range: str = "7", players: str = None, classes: str = None, guild_wise: bool = False):
+    async def warcount(self, interaction: discord.Interaction,  guilds: str = None, range: str = None, players: str = None, classes: str = None, guild_wise: bool = False):
         await interaction.response.defer()
 
         if guild_wise and (players or classes or guilds):
             return await interaction.followup.send(embed=ErrorEmbed("You cannot use `guild_wise` together with `players` or `guilds` or `classes`."))
 
         # Handle input parsing
-        range = await get_range_from_string(range, max_allowed_range=None)
+        if range:
+            range = await get_range_from_string(range, max_allowed_range=None)
+            if not range:
+                return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
+            left, right = range
 
-        if not range:
-            return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
-        
-        left, right = range
         guild_filter = [g.strip() for g in guilds.split(",")] if guilds else []
         names = [x.strip().lower() for x in players.split(",")] if players else None
         listed_classes = [c.strip().upper() for c in classes.split(",")] if classes else ["ARCHER", "WARRIOR", "MAGE", "ASSASSIN", "SHAMAN"]
@@ -102,8 +102,9 @@ LEFT JOIN player_stats ON player_stats.uuid={table_type}.uuid
 WHERE UPPER({table_type}.class_type) IN ({','.join(select_class_in_parts)})
 GROUP BY uuid_name.uuid, player_stats.guild
 ORDER BY all_wars DESC;"""
-
-        query = query.replace("GROUP BY", f"AND {table_type}.time >= {left} AND {table_type}.time <= {right} GROUP BY")
+        
+        if range:
+            query = query.replace("GROUP BY", f"AND {table_type}.time >= {left} AND {table_type}.time <= {right} GROUP BY")
 
         res = await Database.fetch(query)
 
