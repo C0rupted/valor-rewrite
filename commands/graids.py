@@ -23,7 +23,7 @@ class GRaids(commands.Cog):
         players="Filter by player usernames (comma-separated)",
         guild_wise="Show raid totals per guild instead of individual players"
     )
-    @rate_limit_check
+    @rate_limit_check()
     async def graids(self, interaction: discord.Interaction, guilds: str = None, range: str = "7", players: str = None, guild_wise: bool = False):
         await interaction.response.defer()
 

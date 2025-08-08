@@ -1,4 +1,4 @@
-import discord, logging, math
+import discord, io, math
 from PIL import Image, ImageDraw, ImageFont
 
 from core.settings import SettingsManager
@@ -197,10 +197,12 @@ async def build_board(data: list[tuple[str, int]], page: int, is_guild_board: bo
         draw.text((name_margin, height+22), str(stat[1]), font=font)
         draw.text((value_margin, height+22), str(stat[2]), font=font, anchor="rt")
 
-
-    board.save("/tmp/board.png")
-
-    return discord.File("/tmp/board.png", filename="board.png")
+    with io.BytesIO() as img_binary:
+        board.save(img_binary, 'PNG')
+        img_binary.seek(0)
+        file = discord.File(fp=img_binary, filename="board.png")
+    
+    return file
 
 
 
@@ -277,7 +279,10 @@ async def build_warcount_board(data: list[tuple], page: int, listed_classes: lis
 
         i += 1
     
-    img.save("/tmp/warcount.png")
-    file = discord.File("/tmp/warcount.png", filename="warcount.png")
+    with io.BytesIO() as img_binary:
+        img.save(img_binary, 'PNG')
+        img_binary.seek(0)
+        file = discord.File(fp=img_binary, filename="board.png")
+    
     return file
 

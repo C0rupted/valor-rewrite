@@ -1,4 +1,4 @@
-import discord, os, time, re, textwrap, logging
+import discord, os, time, re, textwrap, io
 
 from discord import app_commands, File
 from discord.ext import commands
@@ -212,10 +212,12 @@ class Profile(commands.Cog):
         img = await self.build_profile_image(username, uuid, data, warcount, war_ranking, gxp_contrib, gxp_ranking)
         if not img:
             return await interaction.followup.send(embed=ErrorEmbed("Hidden player profile."))
-        tmp_path = "/tmp/out_profile.png"
-        img.save(tmp_path)
 
-        file = File(tmp_path, filename="profile.png")
+        with io.BytesIO() as img_binary:
+            img.save(img_binary, 'PNG')
+            img_binary.seek(0)
+            file = File(fp=img_binary, filename="profile.png")
+
         await interaction.followup.send(file=file)
 
 async def setup(bot: commands.Bot):
