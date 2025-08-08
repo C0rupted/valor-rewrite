@@ -50,12 +50,15 @@ class Sus(commands.Cog):
         if "username" not in wynn_data:
             return await interaction.followup.send(embed=ErrorEmbed("Wynn API Issue"))
 
-        wynn_join = wynn_data["firstJoin"].split("T")[0]
-        wynn_join_timestamp = time.mktime(datetime.datetime.strptime(wynn_join, "%Y-%m-%d").timetuple())
-        wynn_rank = wynn_data["supportRank"]
-        wynn_level = sum([character["level"] for _, character in wynn_data["characters"].items()])
-        wynn_playtime = wynn_data["playtime"]
-        wynn_quest = wynn_data["globalData"]["completedQuests"]
+        try:
+            wynn_join = wynn_data["firstJoin"].split("T")[0]
+            wynn_join_timestamp = time.mktime(datetime.datetime.strptime(wynn_join, "%Y-%m-%d").timetuple())
+            wynn_rank = wynn_data["supportRank"]
+            wynn_level = sum([character["level"] for _, character in wynn_data["characters"].items()])
+            wynn_playtime = wynn_data["playtime"]
+            wynn_quest = wynn_data["globalData"]["completedQuests"]
+        except KeyError:
+            return await interaction.followup.send(embed=ErrorEmbed("Hidden player profile."))
 
         first_seen = min(hypixel_join, wynn_join_timestamp) if hypixel_join else wynn_join_timestamp
         first_seen_time = datetime.date.fromtimestamp(first_seen).strftime("%Y-%m-%d")

@@ -1,4 +1,4 @@
-import discord, os, time, re, textwrap
+import discord, os, time, re, textwrap, logging
 
 from discord import app_commands, File
 from discord.ext import commands
@@ -20,6 +20,7 @@ class Profile(commands.Cog):
 
     async def build_profile_image(self, username, uuid, data, warcount, war_ranking, gxp_contrib, gxp_ranking):
         # Define colors and fonts, import image
+        black = (0, 0, 0)
         white = (255, 255, 255)
         red = (229, 83, 107)
         green = (87, 234, 128)
@@ -85,47 +86,53 @@ class Profile(commands.Cog):
             draw.text((740, 229), data.get("server", "Unknown"), white, text_font, anchor="ma")
         # Draw last seen date
         else:
-            draw.text((740, 209), "Player last seen:", white, text_font, anchor="ma")
-            if "lastJoin" in data:
+            if data["lastJoin"]:
+                draw.text((740, 209), "Player last seen:", white, text_font, anchor="ma")
                 draw.text((740, 229), datetime.fromisoformat(data["lastJoin"][:-1]).strftime("%H:%M  %m/%d/%Y"), white, text_font, anchor="ma")
+            else:
+                draw.text((740, 209), "Last join date has", white, text_font, anchor="ma")
+                draw.text((740, 229), "been API hidden", white, text_font, anchor="ma")
 
         # Determine top rankings
         rankings = data["ranking"]
-        for rank in dict(rankings):
-            if rank in {"hardcoreLegacyLevel"}:
-                rankings.pop(rank)
-        top_rank_keys = sorted(rankings, key=rankings.get)[:3]
-        top_rankings = {}
-        for key in top_rank_keys:
-            top_rankings[key] = rankings[key]
-        
-        # Determine and draw layer's top leaderboard rankings
-        for i, key in enumerate(top_rank_keys):
-            temp = [s for s in re.split("([A-Z][^A-Z]*)", key) if s]
-
-            rank_badge_link = f"https://cdn.wynncraft.com/nextgen/leaderboard/icons/{temp[0]}.webp?height=50"
-            rank_place = rankings[key]
-            rank_word_list = []
-            for word in temp:
-                if word in {"tcc", "nol", "nog", "tna", "huic", "huich", "hic", "hich"}:
-                    rank_word_list.append(word.upper())
-                else:
-                    rank_word_list.append(word.title())
-            rank = " ".join(rank_word_list)
-            wrapper = textwrap.TextWrapper(width=13, max_lines=2, placeholder="") 
-            rank = wrapper.wrap(text=rank) 
+        if rankings:
+            for rank in dict(rankings):
+                if rank in {"hardcoreLegacyLevel"}:
+                    rankings.pop(rank)
+            top_rank_keys = sorted(rankings, key=rankings.get)[:3]
+            top_rankings = {}
+            for key in top_rank_keys:
+                top_rankings[key] = rankings[key]
             
-            # Fallback to local icons for gamemodes as they are not easily locateable by CDN
-            if temp[0] in {"craftsman", "hunted", "ironman", "hardcore", "ultimate", "huic", "huich", "hic", "hich"}:
-                rank_badge = Image.open(f"assets/icons/gamemodes/{temp[0]}.png")
-            else:
-                rank_badge = Image.open(await request(rank_badge_link, return_type="stream"))
+            # Determine and draw layer's top leaderboard rankings
+            for i, key in enumerate(top_rank_keys):
+                temp = [s for s in re.split("([A-Z][^A-Z]*)", key) if s]
 
-            # Finally draw the rankings, their names and their icons
-            for x, line in enumerate(rank):
-                draw.text((91+(i*120), 335+(x*20)), line, white, text_font, anchor="ma")
-            img.paste(rank_badge, (66+(i*120), 380), rank_badge)
-            draw.text((91+(i*120), 445), f"#{rank_place}", white, text_font, anchor="ma")
+                rank_badge_link = f"https://cdn.wynncraft.com/nextgen/leaderboard/icons/{temp[0]}.webp?height=50"
+                rank_place = rankings[key]
+                rank_word_list = []
+                for word in temp:
+                    if word in {"tcc", "nol", "nog", "tna", "huic", "huich", "hic", "hich"}:
+                        rank_word_list.append(word.upper())
+                    else:
+                        rank_word_list.append(word.title())
+                rank = " ".join(rank_word_list)
+                wrapper = textwrap.TextWrapper(width=13, max_lines=2, placeholder="") 
+                rank = wrapper.wrap(text=rank) 
+                
+                # Fallback to local icons for gamemodes as they are not easily locateable by CDN
+                if temp[0] in {"craftsman", "hunted", "ironman", "hardcore", "ultimate", "huic", "huich", "hic", "hich"}:
+                    rank_badge = Image.open(f"assets/icons/gamemodes/{temp[0]}.png")
+                else:
+                    rank_badge = Image.open(await request(rank_badge_link, return_type="stream"))
+
+                # Finally draw the rankings, their names and their icons
+                for x, line in enumerate(rank):
+                    draw.text((91+(i*120), 335+(x*20)), line, white, text_font, anchor="ma")
+                img.paste(rank_badge, (66+(i*120), 380), rank_badge)
+                draw.text((91+(i*120), 445), f"#{rank_place}", white, text_font, anchor="ma")
+        else:
+            draw.text((207, 389), "All rankings are API hidden.", white, text_font, anchor="ma")
 
         # Draw player's guild
         offset = 53
@@ -144,15 +151,21 @@ class Profile(commands.Cog):
 
 
         # Draw other minor player stats
-        stats = [f'{data["playtime"]} Hours', 
-                 f'{data["globalData"]["totalLevel"]} Levels',
-                 f'{data["globalData"]["killedMobs"]} Mobs',
-                 f'{data["globalData"]["chestsFound"]} Chests',
-                 f'{data["globalData"]["completedQuests"]} Quests']
-        i = 0
-        for stat in stats:
-            draw.text((819, 333+(i*29)), stat, white, stat_text_font, anchor="ra")
-            i += 1
+        stats = data["featuredStats"]
+        try:
+            player_stats = [f'{stats["playtime"]} Hours', 
+                        f'{stats["globalData.totalLevel"]} Levels',
+                        f'{stats["globalData.mobsKilled"]} Mobs',
+                        f'{stats["globalData.chestsFound"]} Chests',
+                        f'{stats["globalData.completedQuests"]} Quests']
+            i = 0
+            for stat in player_stats:
+                draw.text((819, 333+(i*29)), stat, white, stat_text_font, anchor="ra")
+                i += 1
+        except (KeyError, TypeError):
+            draw.rectangle([(623, 326), (823, 476)], black) # Draw a very crude black box over the default stat labels
+            draw.text((723, 389), "Stats are API hidden.", white, text_font, anchor="ma")
+
 
         return img
 
@@ -197,6 +210,8 @@ class Profile(commands.Cog):
 
         # Build and send final profile image
         img = await self.build_profile_image(username, uuid, data, warcount, war_ranking, gxp_contrib, gxp_ranking)
+        if not img:
+            return await interaction.followup.send(embed=ErrorEmbed("Hidden player profile."))
         tmp_path = "/tmp/out_profile.png"
         img.save(tmp_path)
 

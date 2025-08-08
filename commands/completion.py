@@ -3,6 +3,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from util.embeds import ErrorEmbed
 from util.requests import request
 from util.mappings import MAX_STATS, SUPPORT_RANK_SLOTS
 
@@ -108,36 +109,40 @@ class Completion(commands.Cog):
             "Raid Completions": 0,
         }
 
-        for _, char in characters.items():
-            for stat in totals:
-                if stat in ["Quests", "Slaying Mini-Quests", "Gathering Mini-Quests"]:
-                    quests = char.get("quests", [])
-                    if stat == "Quests":
-                        val = sum(1 for q in quests if "Mini-Quest" not in q)
-                    elif stat == "Slaying Mini-Quests":
-                        val = sum(1 for q in quests if "Mini-Quest" in q and "Gather" not in q)
+        try:
+            for _, char in characters.items():
+                for stat in totals:
+                    if stat in ["Quests", "Slaying Mini-Quests", "Gathering Mini-Quests"]:
+                        quests = char.get("quests", [])
+                        if stat == "Quests":
+                            val = sum(1 for q in quests if "Mini-Quest" not in q)
+                        elif stat == "Slaying Mini-Quests":
+                            val = sum(1 for q in quests if "Mini-Quest" in q and "Gather" not in q)
+                        else:
+                            val = sum(1 for q in quests if "Mini-Quest - Gather" in q)
+                    elif stat == "Discoveries":
+                        val = char.get("discoveries", 0)
+                    elif stat == "Unique Dungeon Completions":
+                        val = len(char.get("dungeons", {}).get("list", []))
+                    elif stat == "Unique Raid Completions":
+                        val = len(char.get("raids", {}).get("list", []))
+                    elif stat == "Dungeon Completions":
+                        names = [
+                            "Skeleton", "Spider", "Decrepit", "Lost Sanctuary", "Sand-Swept", "Ice Barrows", 
+                            "Undergrowth", "Galleon's", "Corrupted", "Eldritch", "Fallen Factory"
+                        ]
+                        val = sum(1 for d in char.get("dungeons", {}).get("list", []) if any(n in d for n in names))
+                    elif stat == "Raid Completions":
+                        val = len(char.get("raids", {}).get("list", []))
+                    elif stat in ["Level", "Combat"]:
+                        val = char["totalLevel"] + 12 if stat == "Level" else char["level"]
                     else:
-                        val = sum(1 for q in quests if "Mini-Quest - Gather" in q)
-                elif stat == "Discoveries":
-                    val = char.get("discoveries", 0)
-                elif stat == "Unique Dungeon Completions":
-                    val = len(char.get("dungeons", {}).get("list", []))
-                elif stat == "Unique Raid Completions":
-                    val = len(char.get("raids", {}).get("list", []))
-                elif stat == "Dungeon Completions":
-                    names = [
-                        "Skeleton", "Spider", "Decrepit", "Lost Sanctuary", "Sand-Swept", "Ice Barrows", 
-                        "Undergrowth", "Galleon's", "Corrupted", "Eldritch", "Fallen Factory"
-                    ]
-                    val = sum(1 for d in char.get("dungeons", {}).get("list", []) if any(n in d for n in names))
-                elif stat == "Raid Completions":
-                    val = len(char.get("raids", {}).get("list", []))
-                elif stat in ["Level", "Combat"]:
-                    val = char["totalLevel"] + 12 if stat == "Level" else char["level"]
-                else:
-                    val = char.get("professions", {}).get(stat.lower(), {}).get("level", 0)
+                        val = char.get("professions", {}).get(stat.lower(), {}).get("level", 0)
 
-                totals[stat] += val
+                    totals[stat] += val
+        except (KeyError, AttributeError, TypeError): # Handles all possible player profile errors.
+            return await interaction.followup.send(embed=ErrorEmbed("Hidden player profile."))
+
 
         body = await show_total_progress(totals, max_chars)
         bold = "\033[1m"
