@@ -18,12 +18,12 @@ class AnnihilationTracker(commands.Cog):
 
     def load_annihilation(self):
         if not os.path.exists(ANNI_FILE):
-            return None
+            return {}
         try:
             with open(ANNI_FILE, "r") as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            return None
+            return {}
 
     def save_annihilation(self, timestamp: int):
         with open(ANNI_FILE, "w") as f:
@@ -33,16 +33,17 @@ class AnnihilationTracker(commands.Cog):
     async def annihilation(self, interaction: discord.Interaction):
         data = self.load_annihilation()
         now = int(time.time())
+        timestamp = data.get("timestamp", 0)
+
         if not data or data.get("timestamp", 0) < now:
             return await interaction.response.send_message(
                 embed=discord.Embed(
                     title="Annihilation Tracker",
-                    description="There is currently no Annihilation reported.",
+                    description=f"There is currently no Annihilation reported.\n\nMost recent Annie was at <t:{timestamp}:f> (<t:{timestamp}:R>)",
                     color=ANNI_EMBED_COLOR
                 )
             )
 
-        timestamp = data["timestamp"]
         return await interaction.response.send_message(
             embed=discord.Embed(
                 title="Annihilation Tracker",
@@ -55,6 +56,7 @@ class AnnihilationTracker(commands.Cog):
     @app_commands.describe(time_until="Time until next Annihilation (e.g. '2h30m', '1h 45m') or 'none'")
     @app_commands.guild_only()
     async def report_annihilation(self, interaction: discord.Interaction, time_until: str):
+        await interaction.response.defer()
         if not is_ANO_high_rank(interaction.user) and not config.TESTING:
             return await interaction.response.send_message(embed=ErrorEmbed("You do not have permission to report an Annihilation time."), ephemeral=True)
 
@@ -70,12 +72,12 @@ class AnnihilationTracker(commands.Cog):
 
         match = re.match(r"(?:(\d+)h)?\s*(?:(\d+)m)?", time_until.replace(" ", ""), re.IGNORECASE)
         if not match:
-            return await interaction.response.send_message(embed=ErrorEmbed("Invalid format. Use `2h30m`, `1h 45m`, `1h`, or `30m`"), ephemeral=True)
+            return await interaction.followup.send(embed=ErrorEmbed("Invalid format. Use `2h30m`, `1h 45m`, `1h`, or `30m`"), ephemeral=True)
 
         hours = int(match.group(1)) if match.group(1) else 0
         minutes = int(match.group(2)) if match.group(2) else 0
         if hours == 0 and minutes == 0:
-            return await interaction.response.send_message(embed=ErrorEmbed("Duration must be greater than zero."), ephemeral=True)
+            return await interaction.followup.send(embed=ErrorEmbed("Duration must be greater than zero."), ephemeral=True)
 
         new_ts = int(time.time()) + (hours * 3600) + (minutes * 60)
         existing = self.load_annihilation()
@@ -90,10 +92,11 @@ class AnnihilationTracker(commands.Cog):
                 ),
                 color=ANNI_EMBED_COLOR
             )
-            await interaction.response.send_message(embed=embed, view=ReportAnnihilationView(interaction.user, new_ts))
+
+            return await interaction.followup.send(embed=embed, view=ReportAnnihilationView(interaction.user, new_ts))
 
         self.save_annihilation(new_ts)
-        return await interaction.response.send_message(
+        await interaction.followup.send(
             embed=discord.Embed(
                 title="Annihilation Time Reported",
                 description=f"Next Annihilation is set for <t:{new_ts}:f> (<t:{new_ts}:R>)",
@@ -133,9 +136,6 @@ class ReportAnnihilationView(View):
         )
         self.stop()
 
-    async def on_timeout(self):
-        if self.message:
-            await self.message.edit(view=None)
 
 async def setup(bot: commands.Bot):
     cog = AnnihilationTracker(bot)
