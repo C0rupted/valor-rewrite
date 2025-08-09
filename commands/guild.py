@@ -1,4 +1,4 @@
-import discord, datetime, logging
+import discord, datetime
 
 from discord.ext import commands
 from discord import app_commands
@@ -14,22 +14,35 @@ from util.requests import request
 
 
 async def get_data(guild: str, interaction: discord.Interaction):
+    """
+    Fetch guild data from the Wynncraft API.
+
+    If no guild is provided, fetches default guild info set for the discord server settings.
+    Attempts to resolve guild names and prefixes for accurate API querying.
+    """
     if not guild:
         guild_name = SettingsManager("guild", interaction.guild.id).get("guild_name")
         guild_tag = SettingsManager("guild", interaction.guild.id).get("guild_tag")
 
-        if not (guild_name and guild_tag): return "warn"
+        if not (guild_name and guild_tag):
+            return "warn"  # Warn caller that default guild info is missing
         return await request(f"https://api.wynncraft.com/v3/guild/{guild_name}")
 
     name = await guild_name_from_tag(guild) or guild
     res = await request(f"https://api.wynncraft.com/v3/guild/{name}")
     if not res:
+        # Try querying by prefix if guild name lookup failed
         res = await request(f"https://api.wynncraft.com/v3/guild/prefix/{guild}")
-    
+
     return res
 
 
 async def get_online(data, return_embed: bool = False):
+    """
+    Process guild data to get a list or embed of online members.
+
+    Returns either a simple string table or a Discord Embed depending on `return_embed`.
+    """
     if "members" not in data:
         return None
 
@@ -42,22 +55,33 @@ async def get_online(data, return_embed: bool = False):
     ]
 
     if not online_members:
-        if return_embed: return discord.Embed(title=f"Members of {data["name"]} online (0)", description="```isbl\nThere are no members online.\n```", color=0x7785cc)
-        else: return "```isbl\nThere are no members online.\n```" 
-        
+        if return_embed:
+            return discord.Embed(
+                title=f"Members of {data['name']} online (0)",
+                description="```isbl\nThere are no members online.\n```",
+                color=0x7785cc
+            )
+        else:
+            return "```isbl\nThere are no members online.\n```"
 
     embed = TextTableEmbed(
-            [" Name ", " Rank ", " World "],
-            sorted(online_members, key=lambda x: len(x[1]), reverse=True),
-            title=f"Members of {data["name"]} online ({len(online_members)})",
-            color=0x7785cc,
-        )
+        ["Name", "Rank", "World"],
+        sorted(online_members, key=lambda x: len(x[1]), reverse=True),
+        title=f"Members of {data['name']} online ({len(online_members)})",
+        color=0x7785cc,
+    )
 
-    if return_embed: return embed
-    else: return embed.description
+    if return_embed:
+        return embed
+    else:
+        return embed.description
+
 
 
 class GuildCommands(commands.GroupCog, name="guild"):
+    """
+    Group cog containing guild-related slash commands.
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -65,6 +89,11 @@ class GuildCommands(commands.GroupCog, name="guild"):
     @app_commands.command(name="overview", description="View basic guild info")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
     async def overview(self, interaction: discord.Interaction, guild: str = None):
+        """
+        Display an overview of guild stats including level, owner, member count, territories, wars, and creation date.
+
+        Falls back on default guild if no guild is specified.
+        """
         await interaction.response.defer()
 
         data = await get_data(guild, interaction)
@@ -83,7 +112,7 @@ War Count: {data["wars"]}
 Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/%Y  %H:%M")}
 ```"""
         online_desc = await get_online(data)
-        
+
         embed = discord.Embed(title=f"{data['name']}: Overview", description=desc, color=0x7785cc)
         embed.add_field(name="Online Members", value=online_desc)
 
@@ -93,6 +122,9 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
     @app_commands.command(name="online", description="View online players of the guild")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
     async def online(self, interaction: discord.Interaction, guild: str = None):
+        """
+        Show a list or embed of online members in the specified (or default) guild.
+        """
         await interaction.response.defer()
 
         data = await get_data(guild, interaction)
@@ -108,6 +140,9 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
     @app_commands.command(name="members", description="View a list of all players in a guild")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
     async def members(self, interaction: discord.Interaction, guild: str = None):
+        """
+        Display all guild members grouped by rank with their join dates in a paginated embed.
+        """
         await interaction.response.defer()
 
         data = await get_data(guild, interaction)
@@ -143,6 +178,9 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
     @app_commands.describe(guild="The guild name or prefix of the target guild")
     @rate_limit_check()
     async def gxp(self, interaction: discord.Interaction, guild: str = None):
+        """
+        Show Guild Experience (GXP) contributions by each player, sorted descending.
+        """
         await interaction.response.defer()
 
         data = await get_data(guild, interaction)
@@ -153,13 +191,17 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
         rows = []
 
         for rank in data["members"]:
-            if rank == "total": continue
+            if rank == "total":
+                continue
             for player, player_data in data["members"][rank].items():
                 rows.append([player, player_data["contributed"]])
-        
+
+        # Sort by contributed XP descending
         rows = sorted(rows, key=lambda x: x[1], reverse=True)
 
-        for row in rows: rows[rows.index(row)][1] = f"{rows[rows.index(row)][1]:,} "
+        # Format XP numbers with commas
+        for idx, row in enumerate(rows):
+            rows[idx][1] = f"{row[1]:,} "
 
         await PaginatedTextTableEmbed.send(
             interaction,
@@ -172,13 +214,18 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
 
 
     @app_commands.command(name="activity", description="Show last join times for all players in a guild")
-    @app_commands.describe(guild="The guild name or prefix of the target guild", order="The order to sort in (descending by default)",)
+    @app_commands.describe(guild="The guild name or prefix of the target guild", order="The order to sort in (descending by default)")
     @app_commands.choices(order=[
         app_commands.Choice(name="Ascending", value="asc"),
         app_commands.Choice(name="Descending", value="desc")
     ])
     @rate_limit_check()
     async def activity(self, interaction: discord.Interaction, guild: str = None, order: app_commands.Choice[str] = "desc"):
+        """
+        Display last join times of guild members, sorted by inactivity.
+
+        Supports ascending or descending sorting.
+        """
         await interaction.response.defer()
 
         data = await get_data(guild, interaction)
@@ -197,6 +244,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
         if not members_list:
             return await interaction.followup.send(embed=ErrorEmbed("Guild has no members."))
 
+        # Fetch last join times from local DB for all guild members
         placeholders = ','.join(['%s'] * len(members_list))
         query = f"SELECT name, lastjoin FROM player_last_join WHERE name IN ({placeholders})"
         res = await Database.fetch(query, members_list)
@@ -217,13 +265,25 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
                 display = "30d+"
             rows.append((name, display))
 
-        # Sort by longest inactive first
-        rows.sort(key=lambda r: (r[1] != "30d+", int(r[1].rstrip("dh").split("d")[0]) if r[1] != "30d+" else 9999), reverse=(True if order == "desc" else False))
+        # Sort by longest inactive first (or ascending)
+        rows.sort(
+            key=lambda r: (
+                r[1] != "30d+", 
+                int(r[1].rstrip("dh").split("d")[0]) if r[1] != "30d+" else 9999
+            ),
+            reverse=(True if order == "desc" else False)
+        )
 
-        await PaginatedTextTableEmbed.send(interaction, [" Name ", " Last Join "], rows, title=f"Member Activity of {data["name"]}: ({len(rows)})", rows_per_page=20)
+        await PaginatedTextTableEmbed.send(
+            interaction,
+            ["Name", "Last Join"],
+            rows,
+            title=f"Member Activity of {data['name']}: ({len(rows)})",
+            rows_per_page=20
+        )
 
 
 
-
+# Cog setup function for bot
 async def setup(bot: commands.Bot):
     await bot.add_cog(GuildCommands(bot))

@@ -59,43 +59,82 @@ STATS = {
 }
 
 class Leaderboard(commands.GroupCog, name="leaderboard"):
+    """
+    Group cog for all leaderboard related commands.
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+
     async def display_leaderboard(self, interaction: discord.Interaction, category: str, statistic: str):
+        """
+        Core function to fetch and display leaderboard data for a given category and statistic.
+
+        Args:
+            interaction (discord.Interaction): The command interaction context.
+            category (str): One of 'dungeons', 'raids', 'professions', or 'player_stats'.
+            statistic (str): The statistic name or code to display.
+
+        Workflow:
+        - Validate and normalize statistic name/code.
+        - Query the database with appropriate SQL, handling special cases for combined stats (e.g. raids, dungeons).
+        - Prepare and sort the result list.
+        - Build and send a paginated leaderboard embed or image board.
+        """
         await interaction.response.defer()
 
+        # Normalize statistic from display name to stat code if needed
         if statistic in STATS[category]["names"]:
             stat_index = STATS[category]["names"].index(statistic)
             statistic = STATS[category]["stats"][stat_index]
         elif statistic in STATS[category]["stats"]:
             stat_index = STATS[category]["stats"].index(statistic)
         else:
-            return await interaction.followup.send(ErrorEmbed("Invalid statistic"))
-        
+            return await interaction.followup.send(embed=ErrorEmbed("Invalid statistic"))
 
         try:
+            # Handle combined raid stat by summing several columns
             if statistic == "raids":
-                res = await Database.fetch("SELECT uuid_name.name, uuid_name.uuid, "
-                         "player_stats.the_canyon_colossus + player_stats.nexus_of_light + "
-                         "player_stats.the_nameless_anomaly + player_stats.nest_of_the_grootslangs as total "
-                         "FROM player_stats LEFT JOIN uuid_name ON uuid_name.uuid=player_stats.uuid "
-                         "ORDER BY total DESC LIMIT 50"
-                )
-            elif statistic == "dungeons":
-                # This is a disgustingly long query, I am not going to bother with making it multi-line
-                res = await Database.fetch("SELECT uuid_name.name, uuid_name.uuid, player_stats.decrepit_sewers + player_stats.corrupted_decrepit_sewers + player_stats.infested_pit + player_stats.corrupted_infested_pit + player_stats.corrupted_underworld_crypt + player_stats.underworld_crypt + player_stats.lost_sanctuary + player_stats.corrupted_lost_sanctuary + player_stats.ice_barrows + player_stats.corrupted_ice_barrows + player_stats.corrupted_undergrowth_ruins + player_stats.undergrowth_ruins + player_stats.corrupted_galleons_graveyard + player_stats.galleons_graveyard + player_stats.fallen_factory + player_stats.eldritch_outlook + player_stats.corrupted_sand_swept_tomb + player_stats.sand_swept_tomb + player_stats.timelost_sanctum as total FROM player_stats LEFT JOIN uuid_name ON uuid_name.uuid=player_stats.uuid ORDER BY player_stats.decrepit_sewers + player_stats.corrupted_decrepit_sewers + player_stats.infested_pit + player_stats.corrupted_infested_pit + player_stats.corrupted_underworld_crypt + player_stats.underworld_crypt + player_stats.lost_sanctuary + player_stats.corrupted_lost_sanctuary + player_stats.ice_barrows + player_stats.corrupted_ice_barrows + player_stats.corrupted_undergrowth_ruins + player_stats.undergrowth_ruins + player_stats.corrupted_galleons_graveyard + player_stats.galleons_graveyard + player_stats.fallen_factory + player_stats.eldritch_outlook + player_stats.corrupted_sand_swept_tomb + player_stats.sand_swept_tomb + player_stats.timelost_sanctum DESC LIMIT 50")
-            else:
                 res = await Database.fetch(
-                    f"SELECT uuid_name.name, uuid_name.uuid, player_stats.{statistic} as total FROM player_stats "
-                    f"LEFT JOIN uuid_name ON uuid_name.uuid=player_stats.uuid ORDER BY {statistic} DESC LIMIT 50"
+                    "SELECT uuid_name.name, uuid_name.uuid, "
+                    "player_stats.the_canyon_colossus + player_stats.nexus_of_light + "
+                    "player_stats.the_nameless_anomaly + player_stats.nest_of_the_grootslangs as total "
+                    "FROM player_stats LEFT JOIN uuid_name ON uuid_name.uuid=player_stats.uuid "
+                    "ORDER BY total DESC LIMIT 50"
                 )
+            # Handle combined dungeon stat via a large summed query
+            elif statistic == "dungeons":
+                res = await Database.fetch(
+                    "SELECT uuid_name.name, uuid_name.uuid, "
+                    "player_stats.decrepit_sewers + player_stats.corrupted_decrepit_sewers + "
+                    "player_stats.infested_pit + player_stats.corrupted_infested_pit + "
+                    "player_stats.corrupted_underworld_crypt + player_stats.underworld_crypt + "
+                    "player_stats.lost_sanctuary + player_stats.corrupted_lost_sanctuary + "
+                    "player_stats.ice_barrows + player_stats.corrupted_ice_barrows + "
+                    "player_stats.corrupted_undergrowth_ruins + player_stats.undergrowth_ruins + "
+                    "player_stats.corrupted_galleons_graveyard + player_stats.galleons_graveyard + "
+                    "player_stats.fallen_factory + player_stats.eldritch_outlook + "
+                    "player_stats.corrupted_sand_swept_tomb + player_stats.sand_swept_tomb + "
+                    "player_stats.timelost_sanctum as total "
+                    "FROM player_stats LEFT JOIN uuid_name ON uuid_name.uuid=player_stats.uuid "
+                    "ORDER BY total DESC LIMIT 50"
+                )
+            else:
+                # Simple stat query for individual stats
+                res = await Database.fetch(
+                    f"SELECT uuid_name.name, uuid_name.uuid, player_stats.{statistic} as total "
+                    f"FROM player_stats LEFT JOIN uuid_name ON uuid_name.uuid=player_stats.uuid "
+                    f"ORDER BY {statistic} DESC LIMIT 50"
+                )
+            # Prepare results: fallback to UUID lookup if name is None
             stats = [(m["name"] or await get_name_from_uuid(m["uuid"]), m["total"]) for m in res]
         except Exception as e:
             return await interaction.followup.send(f"Error retrieving leaderboard: {e}", ephemeral=True)
 
-        view = BoardView(interaction.user.id, stats, title=f"Leaderboard for {STATS[category]["names"][stat_index]}")
+        # Create a BoardView for the leaderboard, which supports pagination and formatting
+        view = BoardView(interaction.user.id, stats, title=f"Leaderboard for {STATS[category]['names'][stat_index]}")
 
+        # Use fancy image-based board based on user preferences, otherwise fallback to embed text table
         if view.is_fancy:
             board = await build_board(view.data, view.page)
             await interaction.followup.send(view=view, file=board)
@@ -104,82 +143,116 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
             end = start + 10
             sliced = view.data[start:end]
 
+            # Add rank numbering for display
             for i in range(len(sliced)):
                 sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
 
-            embed = TextTableEmbed([" Rank ", " Name ", " Value "], sliced, title=view.title, color=0x333333)
+            embed = TextTableEmbed(["Rank", "Name", "Value"], sliced, title=view.title, color=0x333333)
             await interaction.followup.send(embed=embed, view=view)
+
+
 
     @app_commands.command(name="dungeons", description="Dungeon leaderboards")
     @app_commands.describe(stat="Choose a dungeon to see its leaderboard")
     @rate_limit_check()
     async def leaderboard_dungeons(self, interaction: discord.Interaction, stat: str):
+        """Show dungeon leaderboard for a chosen dungeon stat."""
         await self.display_leaderboard(interaction, "dungeons", stat)
 
     @leaderboard_dungeons.autocomplete("stat")
     async def dungeons_autocomplete(self, interaction: discord.Interaction, current: str):
+        """Autocomplete dungeon stat names."""
         return [discord.app_commands.Choice(name=name, value=name) for name in STATS["dungeons"]["names"] if current.lower() in name.lower()]
+
 
     @app_commands.command(name="raids", description="Raid leaderboards")
     @app_commands.describe(stat="Choose a raid to see its leaderboard")
     @rate_limit_check()
     async def leaderboard_raids(self, interaction: discord.Interaction, stat: str):
+        """Show raid leaderboard for a chosen raid stat."""
         await self.display_leaderboard(interaction, "raids", stat)
 
     @leaderboard_raids.autocomplete("stat")
     async def raids_autocomplete(self, interaction: discord.Interaction, current: str):
+        """Autocomplete raid stat names."""
         return [discord.app_commands.Choice(name=name, value=name) for name in STATS["raids"]["names"] if current.lower() in name.lower()]
+
 
     @app_commands.command(name="professions", description="Profession leaderboards")
     @app_commands.describe(stat="Choose a profession to see its leaderboard")
     @rate_limit_check()
     async def leaderboard_professions(self, interaction: discord.Interaction, stat: str):
+        """Show profession leaderboard for a chosen profession stat."""
         await self.display_leaderboard(interaction, "professions", stat)
 
     @leaderboard_professions.autocomplete("stat")
     async def professions_autocomplete(self, interaction: discord.Interaction, current: str):
+        """Autocomplete profession stat names."""
         return [discord.app_commands.Choice(name=name, value=name) for name in STATS["professions"]["names"] if current.lower() in name.lower()]
+
 
     @app_commands.command(name="player_stats", description="General player stat leaderboards")
     @app_commands.describe(stat="Choose a player stat to see its leaderboard")
     @rate_limit_check()
     async def leaderboard_misc(self, interaction: discord.Interaction, stat: str):
+        """Show leaderboard for general player stats."""
         await self.display_leaderboard(interaction, "player_stats", stat)
 
     @leaderboard_misc.autocomplete("stat")
     async def misc_autocomplete(self, interaction: discord.Interaction, current: str):
+        """Autocomplete player stat names."""
         return [discord.app_commands.Choice(name=name, value=name) for name in STATS["player_stats"]["names"] if current.lower() in name.lower()]
+
 
     @app_commands.command(name="season_rating", description="Guild Season rating leaderboard")
     @app_commands.describe(season="Pick a season to see its leaderboard (defaults to current season)")
     @rate_limit_check()
     async def season_ratings(self, interaction: discord.Interaction, season: int = None):
+        """
+        Fetch and display the guild season rating leaderboard.
+
+        Defaults to the current season if no season number is provided.
+        Validates season number and fetches JSON data from an external API.
+        Displays sorted guild ratings in a paginated leaderboard.
+        """
         await interaction.response.defer()
 
-        # Get current season name
+        # Get current season number if not provided
         if not season:
             season = await get_current_season()
-            season = season[6:]
+            season = season[6:]  # Strip prefix to get season number (like "season26" -> "26")
 
-        try: season_num = int(season)
-        except ValueError: return await interaction.followup.send(embed=ErrorEmbed("You must provide a valid season number."))
+        # Validate season number input
+        try:
+            season_num = int(season)
+        except ValueError:
+            return await interaction.followup.send(embed=ErrorEmbed("You must provide a valid season number."))
 
         if season_num < 25:
             return await interaction.followup.send(embed=ErrorEmbed("Season rating leaderboards are not tracked for before Season 25."))
 
+        # Fetch data from SR API
         data = await request(f"https://raw.githubusercontent.com/C0rupted/wynncraft-sr-api/refs/heads/master/season-{season_num}.json")
         if not data:
             return await interaction.followup.send(embed=ErrorEmbed("Could not fetch season rating data."))
 
-        # Convert to list of (name, rating)
+        # Convert to list of (guild_name, rating) and sort descending by rating
         ratings = [[guild["name"], int(guild["rating"])] for guild in data]
         ratings.sort(key=lambda g: g[1], reverse=True)
 
-        # Format rows as strings
+        # Format rows with thousands separator for display
         rows = [[name, f"{rating:,}"] for name, rating in ratings]
 
-        view = BoardView(interaction.user.id, rows, title=f"Season Rating Leaderboard for Season {season_num}", is_guild_board=True, headers=["Guild", "Rating"])
+        # Create a guild leaderboard BoardView with headers
+        view = BoardView(
+            interaction.user.id,
+            rows,
+            title=f"Season Rating Leaderboard for Season {season_num}",
+            is_guild_board=True,
+            headers=["Guild", "Rating"]
+        )
 
+        # Use fancy image board based on user preferences or fallback to text embed table
         if view.is_fancy:
             board = await build_board(view.data, view.page, is_guild_board=True)
             await interaction.followup.send(view=view, file=board)
@@ -191,9 +264,13 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
             for i in range(len(sliced)):
                 sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
 
-            embed = TextTableEmbed(["Rank", "Guild", "Rating"], sliced, title=view.title, color=0x333333)
+            embed = TextTableEmbed(
+                ["Rank", "Guild", "Rating"], 
+                sliced, 
+                title=view.title, 
+                color=0x333333
+            )
             await interaction.followup.send(embed=embed, view=view)
-
 
 
 async def setup(bot: commands.Bot):

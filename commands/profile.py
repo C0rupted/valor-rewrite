@@ -14,102 +14,138 @@ from util.ranks import get_war_rank, get_xp_rank
 from util.requests import request
 from util.uuid import get_uuid_from_name, detect_uuid_or_name
 
+
+
 class Profile(commands.Cog):
+    """
+    Cog providing /profile command to generate a profile card image for a player with various stats and ranking info.
+    """
     def __init__(self, bot):
         self.bot = bot
 
-    async def build_profile_image(self, username, uuid, data, warcount, war_ranking, gxp_contrib, gxp_ranking):
-        # Define colors and fonts, import image
+
+    async def build_profile_image(
+        self, username: str, uuid: str, data: dict, warcount: int,
+        war_ranking: tuple, gxp_contrib: int, gxp_ranking: tuple
+    ) -> Image.Image:
+        """
+        Creates a profile card using PIL Image for the player using their stats and rankings.
+        """
+        # Define some common colors for drawing on the image
         black = (0, 0, 0)
         white = (255, 255, 255)
         red = (229, 83, 107)
         green = (87, 234, 128)
         blue = (47, 63, 210)
 
+        # Load the fonts used for text rendering on the profile image
         name_font = ImageFont.truetype("assets/MinecraftRegular.ttf", 32)
         rank_font = ImageFont.truetype("assets/MinecraftRegular.ttf", 28)
         text_font = ImageFont.truetype("assets/MinecraftRegular.ttf", 15)
         stat_text_font = ImageFont.truetype("assets/MinecraftRegular.ttf", 12)
 
+        # Open the base profile template image (PNG with transparent areas)
         img = Image.open("assets/profile_template.png")
-        draw = ImageDraw.Draw(img)
+        draw = ImageDraw.Draw(img)  # Prepare to draw on the image
 
-        # Draw username and rank badge
-        offset = 0
+        # Draw the username and support rank badge if applicable
+        offset = 0  # Used to shift username if rank badge is drawn
         if data.get("supportRank"):
             rank_badge_path = f"assets/icons/ranks/{data['supportRank']}.png"
+            # Check if rank badge image exists locally
             if os.path.exists(rank_badge_path):
                 rank_badge = Image.open(rank_badge_path)
+                # Paste the badge onto the profile image at fixed position with transparency
                 img.paste(rank_badge, (21, 25), rank_badge)
+                # Offset username x-position based on rank badge width
                 offset = {
                     "vip": 84,
                     "vipplus": 105,
                     "hero": 110,
                     "champion": 175
                 }.get(data['supportRank'], 0)
+        # Draw the username next to the badge (or default position)
         draw.text((21 + offset, 24), data["username"], white, name_font)
 
-        # Get and draw character model
+        # Prepare to draw the player's character bust model on the profile
         tmp_path = f"/tmp/{username}_model.png"
+        # Cache bust model locally for 24 hours to avoid repeated downloads
         if not os.path.exists(tmp_path) or time.time() - os.path.getmtime(tmp_path) > 86400:
             headers = {"User-Agent": "valor-bot/1.0"}
             model = await request(f"https://visage.surgeplay.com/bust/{uuid}.png", headers=headers, return_type="image")
             with open(tmp_path, "wb") as f:
                 f.write(model)
+        # Open cached model image and resize to fit profile layout
         model_img = Image.open(tmp_path).resize((203, 190))
+        # Paste model image onto profile template with transparency mask
         img.paste(model_img, (26, 79), model_img)
 
-        # Draw warcount badge and progress bar
+        # Draw warcount rank abbreviation (e.g., "A", "B", "C") at fixed position
         draw.text((342, 161), war_ranking[0], red, rank_font, anchor="mm")
+        # Draw the warcount progress text (current / max for rank)
         draw.text((342, 230), f"{warcount} / {war_ranking[1]}", white, text_font, anchor="ma")
+        # Calculate width of progress bar for warcount (max 142 pixels)
         value = min(round((warcount / war_ranking[1]) * 142), 142)
+        # Draw filled rectangle representing warcount progress bar
         draw.rectangle([(269, 221), (value + 269, 224)], red)
 
-        # Draw Guild XP badge and progress bar
+        # Draw guild XP rank abbreviation and progress bar (similar to warcount)
         draw.text((542, 161), gxp_ranking[0], green, rank_font, anchor="mm")
         draw.text((542, 230), f"{human_format(gxp_contrib)} / {human_format(gxp_ranking[1])}", white, text_font, anchor="ma")
         value = min(round((gxp_contrib / gxp_ranking[1]) * 142), 142)
         draw.rectangle([(469, 221), (value + 469, 224)], green)
 
-        # Draw coolness bar and label
+        # Query recent player activity in last 7 days from database for "coolness"
         recent = await Database.fetch(
             "SELECT COUNT(*) FROM activity_members WHERE uuid=%s AND timestamp >= %s",
             (uuid, int(time.time()) - 7 * 86400)
         )
+        # Scale coolness value (clamped to 1 max)
         cool = min(recent[0]["COUNT(*)"] / 100, 1)
+        # Draw coolness progress bar (blue)
         draw.rectangle([(668, 124), (round(cool * 142) + 668, 127)], blue)
+        # Draw coolness percentage text
         draw.text((740, 140), f"{round(cool * 100)}% Cool", white, text_font, anchor="ma")
 
-        # Draw currently online and current world
+        # Draw player online status and current server/world or last seen time
         if data.get("online"):
+            # Player is currently online
             draw.text((740, 209), "Player Online:", green, text_font, anchor="ma")
             draw.text((740, 229), data.get("server", "Unknown"), white, text_font, anchor="ma")
-        # Draw last seen date
         else:
+            # Player offline - show last join date or fallback text if hidden by API
             if data["lastJoin"]:
+                # Parse ISO datetime string and format for display
                 draw.text((740, 209), "Player last seen:", white, text_font, anchor="ma")
                 draw.text((740, 229), datetime.fromisoformat(data["lastJoin"][:-1]).strftime("%H:%M  %m/%d/%Y"), white, text_font, anchor="ma")
             else:
                 draw.text((740, 209), "Last join date has", white, text_font, anchor="ma")
                 draw.text((740, 229), "been API hidden", white, text_font, anchor="ma")
 
-        # Determine top rankings
+        # Extract leaderboard rankings from data and filter out hidden keys
         rankings = data["ranking"]
         if rankings:
+            # Remove certain keys from rankings dict
             for rank in dict(rankings):
                 if rank in {"hardcoreLegacyLevel"}:
                     rankings.pop(rank)
+
+            # Sort rankings by their values and take top 3 keys
             top_rank_keys = sorted(rankings, key=rankings.get)[:3]
             top_rankings = {}
             for key in top_rank_keys:
                 top_rankings[key] = rankings[key]
-            
-            # Determine and draw layer's top leaderboard rankings
+
+            # For each top ranking, draw rank name, icon, and rank place number
             for i, key in enumerate(top_rank_keys):
+                # Split camelcase rank key into words for formatting
                 temp = [s for s in re.split("([A-Z][^A-Z]*)", key) if s]
 
+                # Generate URL for rank badge icon from CDN
                 rank_badge_link = f"https://cdn.wynncraft.com/nextgen/leaderboard/icons/{temp[0]}.webp?height=50"
                 rank_place = rankings[key]
+
+                # Format rank words, uppercase certain acronyms
                 rank_word_list = []
                 for word in temp:
                     if word in {"tcc", "nol", "nog", "tna", "huic", "huich", "hic", "hich"}:
@@ -117,65 +153,80 @@ class Profile(commands.Cog):
                     else:
                         rank_word_list.append(word.title())
                 rank = " ".join(rank_word_list)
-                wrapper = textwrap.TextWrapper(width=13, max_lines=2, placeholder="") 
-                rank = wrapper.wrap(text=rank) 
-                
-                # Fallback to local icons for gamemodes as they are not easily locateable by CDN
+
+                # Wrap rank text to max 2 lines for neatness
+                wrapper = textwrap.TextWrapper(width=13, max_lines=2, placeholder="")
+                rank = wrapper.wrap(text=rank)
+
+                # Use local icons for gamemodes that CDN might not have
                 if temp[0] in {"craftsman", "hunted", "ironman", "hardcore", "ultimate", "huic", "huich", "hic", "hich"}:
                     rank_badge = Image.open(f"assets/icons/gamemodes/{temp[0]}.png")
                 else:
+                    # Otherwise, download rank badge icon from CDN
                     rank_badge = Image.open(await request(rank_badge_link, return_type="stream"))
 
-                # Finally draw the rankings, their names and their icons
+                # Draw each line of rank name text
                 for x, line in enumerate(rank):
-                    draw.text((91+(i*120), 335+(x*20)), line, white, text_font, anchor="ma")
-                img.paste(rank_badge, (66+(i*120), 380), rank_badge)
-                draw.text((91+(i*120), 445), f"#{rank_place}", white, text_font, anchor="ma")
+                    draw.text((91 + (i * 120), 335 + (x * 20)), line, white, text_font, anchor="ma")
+
+                # Paste rank badge icon
+                img.paste(rank_badge, (66 + (i * 120), 380), rank_badge)
+                # Draw rank placement (e.g. "#1", "#2", etc.)
+                draw.text((91 + (i * 120), 445), f"#{rank_place}", white, text_font, anchor="ma")
         else:
+            # No rankings available - indicate data is hidden
             draw.text((207, 389), "All rankings are API hidden.", white, text_font, anchor="ma")
 
-        # Draw player's guild
-        offset = 53
+        # Draw player's guild info and guild badge if available
+        offset = 53  # Vertical offset for guild rank text if badge exists
         if data["guild"]:
             try:
-                # Use custom guild icons for guilds that have provided them. Contact ANO chiefs if you want to get yours added!!
+                # Attempt to load guild badge icon from local assets folder
                 guild_badge = Image.open(f'assets/icons/guilds/{data["guild"]["prefix"]}.png')
                 img.paste(guild_badge, (414, 289), guild_badge)
             except FileNotFoundError:
+                # If no badge icon found, remove vertical offset to align text correctly
                 offset = 0
 
-            draw.text((505, 380+offset), f'{data["guild"]["rank"]} of', white, text_font, anchor="ma")
-            draw.text((505, 400+offset), data["guild"]["name"], white, text_font, anchor="ma")
+            # Draw guild rank and guild name
+            draw.text((505, 380 + offset), f'{data["guild"]["rank"]} of', white, text_font, anchor="ma")
+            draw.text((505, 400 + offset), data["guild"]["name"], white, text_font, anchor="ma")
         else:
+            # Player is not in a guild - draw placeholder text
             draw.text((505, 390), "No Guild", white, text_font, anchor="ma")
 
-
-        # Draw other minor player stats
+        # Draw additional player stats from featuredStats field
         stats = data["featuredStats"]
         try:
-            player_stats = [f'{stats["playtime"]} Hours', 
-                        f'{stats["globalData.totalLevel"]} Levels',
-                        f'{stats["globalData.mobsKilled"]} Mobs',
-                        f'{stats["globalData.chestsFound"]} Chests',
-                        f'{stats["globalData.completedQuests"]} Quests']
+            player_stats = [
+                f'{stats["playtime"]} Hours',
+                f'{stats["globalData.totalLevel"]} Levels',
+                f'{stats["globalData.mobsKilled"]} Mobs',
+                f'{stats["globalData.chestsFound"]} Chests',
+                f'{stats["globalData.completedQuests"]} Quests'
+            ]
+            # Draw each stat on the right side of the profile
             i = 0
             for stat in player_stats:
-                draw.text((819, 333+(i*29)), stat, white, stat_text_font, anchor="ra")
+                draw.text((819, 333 + (i * 29)), stat, white, stat_text_font, anchor="ra")
                 i += 1
         except (KeyError, TypeError):
-            draw.rectangle([(623, 326), (823, 476)], black) # Draw a very crude black box over the default stat labels
+            # If any stats missing or data hidden, draw black rectangle and fallback message
+            draw.rectangle([(623, 326), (823, 476)], black)  # Overwrite default stat labels
             draw.text((723, 389), "Stats are API hidden.", white, text_font, anchor="ma")
 
-
+        # Return the completed PIL image object
         return img
+
 
     @app_commands.command(name="profile", description="Display a profile card for a player")
     @app_commands.describe(username="Username or uuid of targeted player")
     @rate_limit_check()
     async def profile(self, interaction: discord.Interaction, username: str):
+        # Defer response because processing may take time (e.g., image building)
         await interaction.response.defer()
 
-        # Get player UUID and confirm player exists
+        # Determine if input is a UUID or username string
         input_type = detect_uuid_or_name(username)
         if input_type == "uuid":
             uuid = username
@@ -183,22 +234,23 @@ class Profile(commands.Cog):
             uuid = await get_uuid_from_name(username)
         else:
             return await interaction.followup.send(embed=ErrorEmbed("Invalid input."))
-        
+
+        # If no UUID found for player, return error message
         if not uuid:
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 
-        # Fetch player data from API
+        # Fetch player data from external API (Wynncraft)
         data = await request(f"https://api.wynncraft.com/v3/player/{uuid}")
         if not data:
             return await interaction.followup.send(embed=ErrorEmbed("Error fetching player data."))
 
-        # Get warcount data
-        warcount = 0
+        # Query database for player's total warcount
         res = await Database.fetch("SELECT SUM(warcount) FROM cumu_warcounts WHERE uuid=%s", (uuid,))
-        warcount += (res[0]["SUM(warcount)"] if res and res[0]["SUM(warcount)"] is not None else 0)
+        warcount = res[0]["SUM(warcount)"] if res and res[0]["SUM(warcount)"] is not None else 0
+        # Determine player's war rank based on warcount
         war_ranking = get_war_rank(warcount)
 
-        # Get Guild XP data
+        # Query database for guild XP contribution (max of total xp and guild XP deltas)
         res = await Database.fetch("""
             SELECT MAX(xp)
             FROM ((SELECT xp FROM user_total_xps WHERE uuid=%s)
@@ -206,19 +258,25 @@ class Profile(commands.Cog):
                   (SELECT SUM(delta) FROM player_delta_record WHERE guild='Titans Valor' AND uuid=%s AND label='gu_gxp')) A;
         """, (uuid, uuid))
         gxp_contrib = res[0]["MAX(xp)"] if res and res[0]["MAX(xp)"] else 0
+        # Determine guild XP rank based on contribution
         gxp_ranking = get_xp_rank(gxp_contrib)
 
-        # Build and send final profile image
+        # Build the profile image asynchronously using gathered data
         img = await self.build_profile_image(username, uuid, data, warcount, war_ranking, gxp_contrib, gxp_ranking)
         if not img:
             return await interaction.followup.send(embed=ErrorEmbed("Hidden player profile."))
 
+        # Convert PIL Image to in-memory binary PNG for Discord upload
         with io.BytesIO() as img_binary:
             img.save(img_binary, 'PNG')
             img_binary.seek(0)
             file = File(fp=img_binary, filename="profile.png")
 
-        await interaction.followup.send(file=file)
+            # Send the profile image as a file attachment in the Discord followup response
+            await interaction.followup.send(file=file)
 
+
+
+# Cog setup function for bot
 async def setup(bot: commands.Bot):
     await bot.add_cog(Profile(bot))

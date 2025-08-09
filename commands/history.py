@@ -10,12 +10,27 @@ from util.uuid import get_uuid_from_name
 
 
 class History(commands.Cog):
+    """
+    Cog providing the /history command used to fetch and display the guild membership history of a player.
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
 
     @app_commands.command(name="history", description="Shows the guild membership history of a player.")
     @app_commands.describe(username="The player's username")
     async def history(self, interaction: discord.Interaction, username: str):
+        """
+        Fetch and display a player's guild membership history combining database logs and API data.
+
+        Workflow:
+        1. Retrieve UUID from username.
+        2. Query guild join logs and activity member tables from the database.
+        3. Combine and merge entries with close timestamps.
+        4. Reconstruct join/leave timeline.
+        5. Enrich the most recent guild data with API info.
+        6. Display results in a paginated table.
+        """
         await interaction.response.defer()
 
         uuid = await get_uuid_from_name(username)
@@ -111,5 +126,7 @@ class History(commands.Cog):
         )
 
 
+
+# Cog setup function for bot
 async def setup(bot: commands.Bot):
     await bot.add_cog(History(bot))

@@ -10,6 +10,10 @@ from util.mappings import MAX_STATS, SUPPORT_RANK_SLOTS
 
 
 async def get_colored_percentage(percent: float) -> str:
+    """
+    Returns a percentage value formatted with ANSI color codes based on thresholds. 
+    Colors indicate performance: blue (>= 96%), red (<= 0 or < 30%), yellow (< 80%), green (>= 80% but < 96%)
+    """
     green = "\033[1;32m"
     red = "\033[0;31m"
     yellow = "\033[1;33m"
@@ -29,34 +33,41 @@ async def get_colored_percentage(percent: float) -> str:
 
 
 async def show_total_progress(stats: dict, max_characters: int) -> str:
-    sections = []
-    total = 0
-    total_max = 0
+    """
+    Builds a formatted progress table showing totals for various game stats
+    Calculates overall total progress relative to max possible
+    """
+    sections = []  # Each entry is one line of the table
+    total = 0      # Accumulated total across all stats
+    total_max = 0  # Maximum possible across all stats
+
+    # ANSI color codes for section headers
     stop = "\033[0m"
     blue = "\033[0;34m"
     green = "\033[0;32m"
     purple = "\033[0;35m"
     red = "\033[1;31m"
 
+    # Helper function to format and append a stat section
     async def section(label: str, value: int, max_val: int, color_code: str):
         nonlocal total, total_max
         total += value
         total_max += max_val
         return f"{color_code}{label:>24}{stop}  | {value:7,} / {max_val:6,}  | {await get_colored_percentage(value / max_val)}"
 
-    # Levels
+    # Levels section
     sections.append(await section("Total Level", stats["Level"], MAX_STATS["total"] * max_characters, blue))
     sections.append(await section("Combat", stats["Combat"], MAX_STATS["combat"] * max_characters, blue))
 
-    # Gathering profs
+    # Gathering professions
     for prof in ["Farming", "Fishing", "Mining", "Woodcutting"]:
         sections.append(await section(prof, stats[prof], MAX_STATS["gathering"] * max_characters, purple))
 
-    # Crafting profs
+    # Crafting professions
     for prof in ["Alchemism", "Armouring", "Cooking", "Jeweling", "Scribing", "Tailoring", "Weaponsmithing", "Woodworking"]:
         sections.append(await section(prof, stats[prof], MAX_STATS["crafting"] * max_characters, purple))
 
-    # Quests & Challenges
+    # Quest and challenge-related stats
     sections.append(await section("Main Quests", stats["Quests"], 137 * max_characters, green))
     sections.append(await section("Slaying Mini-Quests", stats["Slaying Mini-Quests"], 29 * max_characters, green))
     sections.append(await section("Gathering Mini-Quests", stats["Gathering Mini-Quests"], 96 * max_characters, green))
@@ -64,6 +75,7 @@ async def show_total_progress(stats: dict, max_characters: int) -> str:
     sections.append(await section("Unique Dungeons", stats["Unique Dungeon Completions"], 18 * max_characters, green))
     sections.append(await section("Unique Raids", stats["Unique Raid Completions"], 4 * max_characters, green))
 
+    # Final overall total section
     sections.append(f"{red}{'Overall Total':>24}{stop}  | {total:7,} / {total_max:6,}  | {await get_colored_percentage(total / total_max)}")
 
     return "\n".join(sections)
@@ -74,16 +86,20 @@ class Completion(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+
     @app_commands.command(name="completion", description="Display a profile card for a player")
     @app_commands.describe(username="The player's username")
     async def completion(self, interaction: discord.Interaction, username: str):
+        # Defer response while processing data
         await interaction.response.defer()
 
+        # Fetch full player data from Wynncraft API
         data = await request(f"https://api.wynncraft.com/v3/player/{username}?fullResult")
-        characters = data["characters"]
-        rank = data["supportRank"]
-        max_chars = SUPPORT_RANK_SLOTS.get(rank, 6)
+        characters = data["characters"]  # Dictionary of all characters for the player
+        rank = data["supportRank"]       # Player rank (affects max allowed characters)
+        max_chars = SUPPORT_RANK_SLOTS.get(rank, 6)  # Default to 6 if rank not listed
 
+        # Initialize dictionary to accumulate totals for each tracked stat
         totals = {
             "Level": 0,
             "Combat": 0,
@@ -110,9 +126,11 @@ class Completion(commands.Cog):
         }
 
         try:
+            # Loop over each character and sum relevant stats
             for _, char in characters.items():
                 for stat in totals:
                     if stat in ["Quests", "Slaying Mini-Quests", "Gathering Mini-Quests"]:
+                        # Handle quest-based stats by filtering quest names
                         quests = char.get("quests", [])
                         if stat == "Quests":
                             val = sum(1 for q in quests if "Mini-Quest" not in q)
@@ -127,6 +145,7 @@ class Completion(commands.Cog):
                     elif stat == "Unique Raid Completions":
                         val = len(char.get("raids", {}).get("list", []))
                     elif stat == "Dungeon Completions":
+                        # Counts only known named dungeons from list
                         names = [
                             "Skeleton", "Spider", "Decrepit", "Lost Sanctuary", "Sand-Swept", "Ice Barrows", 
                             "Undergrowth", "Galleon's", "Corrupted", "Eldritch", "Fallen Factory"
@@ -135,22 +154,27 @@ class Completion(commands.Cog):
                     elif stat == "Raid Completions":
                         val = len(char.get("raids", {}).get("list", []))
                     elif stat in ["Level", "Combat"]:
+                        # Level stat is total level + 12 (for base points), combat is direct level
                         val = char["totalLevel"] + 12 if stat == "Level" else char["level"]
                     else:
+                        # Professions: look up by lowercase key in professions dict
                         val = char.get("professions", {}).get(stat.lower(), {}).get("level", 0)
 
                     totals[stat] += val
-        except (KeyError, AttributeError, TypeError): # Handles all possible player profile errors.
+        except (KeyError, AttributeError, TypeError):
+            # Handle cases where player profile is private or data is missing
             return await interaction.followup.send(embed=ErrorEmbed("Hidden player profile."))
 
-
+        # Build the formatted progress body
         body = await show_total_progress(totals, max_chars)
+
+        # Send output as an ANSI code block for colored formatting
         bold = "\033[1m"
         stop = "\033[0m"
         await interaction.followup.send(f"```ansi\n{bold}{username}'s Completionism{stop}\n{body}\n```")
 
 
 
+# Cog setup function for bot
 async def setup(bot: commands.Bot):
     await bot.add_cog(Completion(bot))
-

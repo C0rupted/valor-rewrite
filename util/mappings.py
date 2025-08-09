@@ -1,4 +1,4 @@
-
+# Maps item names to internal emoji keys (used to look up actual emoji IDs)
 ITEM_TO_EMOJI_MAP = {
     "Resonance": "relikbasicGold",
     "Convergence": "spearmulti3",
@@ -60,6 +60,7 @@ ITEM_TO_EMOJI_MAP = {
     "Inferno": "daggerfire3"
 }
 
+# Maps aspect image filenames to emoji keys for class aspects
 ASPECT_TO_EMOJI_MAP = {
     "static_mage.png": "mageaspect",
     "static_warrior.png": "warrioraspect",
@@ -73,6 +74,7 @@ ASPECT_TO_EMOJI_MAP = {
     "aspect_archer.gif": "archeraspect",
 }
 
+# Maps emoji keys to the actual Discord emoji strings
 EMOJI_MAP = {
     "shiny": "<:shiny:1373802935628075078>",
     "bowbasicGold": "<:bowbasicGold:1373920955470053417>",
@@ -122,11 +124,13 @@ EMOJI_MAP = {
     "le": "<:le:1400002600346189937>"
 }
 
+# UI-specific emojis used for navigation or UI elements
 UI_EMOJI_MAP = {
     "right_arrow": "<:rightarrow:1396759382380773548>",
     "left_arrow": "<:leftarrow:1396759214403092541>"
 }
 
+# Mapping guild ranks to their associated stars
 RANK_SYMBOL_MAP = {
     "recruit": "",
     "recruiter": "*",
@@ -136,6 +140,7 @@ RANK_SYMBOL_MAP = {
     "owner": "*****",
 }
 
+# Maximum level values
 MAX_STATS = {
     "total": 1690,
     "combat": 106,
@@ -143,6 +148,7 @@ MAX_STATS = {
     "crafting": 132
 }
 
+# Slots available for support ranks, keyed by rank name or None (default)
 SUPPORT_RANK_SLOTS = {
     None: 6,
     "vip": 9,
@@ -151,6 +157,7 @@ SUPPORT_RANK_SLOTS = {
     "champion": 14
 }
 
+# Maps base classes to their reskinned variants
 CLASS_RESKINS_MAP = {
     "ARCHER": "HUNTER",
     "WARRIOR": "KNIGHT", 
@@ -159,6 +166,7 @@ CLASS_RESKINS_MAP = {
     "SHAMAN": "SKYSEER"
 }
 
+# Territory defence values for territory calculations
 TERRITORY_DAMAGE_VALUES = [1000, 2800, 3600, 4400, 5200, 6000, 6800, 7600, 8400, 9200, 10000, 10800]
 TERRITORY_ATTACK_VALUES = [0.5, 0.75, 1.0, 1.25, 1.6, 2.0, 2.5, 3.0, 3.6, 3.8, 4.2, 4.7]
 TERRITORY_HEALTH_VALUES = [300_000, 450_000, 600_000, 750_000, 960_000, 1_200_000, 1_500_000, 1_860_000, 2_220_000, 2_580_000, 2_940_000, 3_300_000]

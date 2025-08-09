@@ -1,51 +1,54 @@
 import discord
 from core.config import config
 
-def is_ANO_member(user: discord.User):
-    roles = {x.id for x in user.roles}
+
+
+def _has_role(user: discord.User, allowed_roles) -> bool:
+    """
+    Internal helper to check if a user has any role from `allowed_roles`.
+
+    Args:
+        user (discord.User or discord.Member): The user whose roles to check.
+        allowed_roles (list[int] | int): A role ID or a set of role IDs that grant permission.
+
+    Returns:
+        bool: True if the user has at least one of the allowed roles, False otherwise.
+    """
     try:
-        return True if config.ANO_MEMBER_ROLE in roles else False
+        user_roles = {role.id for role in user.roles}  # Extract role IDs
     except AttributeError:
-        return False
+        return False  # In case `user` has no `.roles` (not a discord.Member object)
+
+    # Ensure allowed_roles is a set for easy comparison
+    if not isinstance(allowed_roles, list):
+        allowed_roles = {allowed_roles}
+
+    # Intersection check — returns True if there's any overlap
+    return not user_roles.isdisjoint(allowed_roles)
 
 
-def is_ANO_military_member(user: discord.User):
-    roles = {x.id for x in user.roles}
-    try:
-        return True if config.ANO_MEMBER_ROLE in roles else False
-    except AttributeError:
-        return False
+
+def is_ANO_member(user: discord.User) -> bool:
+    """Check if the user is an ANO member."""
+    return _has_role(user, config.ANO_MEMBER_ROLE)
 
 
-def is_ANO_high_rank(user: discord.User):
-    allowed_roles = config.ANO_HIGH_RANK_ROLES 
-    roles = {x.id for x in user.roles}
+def is_ANO_military_member(user: discord.User) -> bool:
+    """Check if the user is an ANO military member."""
+    return _has_role(user, config.ANO_MILITARY_ROLE)
 
-    has_permission = False
-    for role in roles:
-        if role in allowed_roles:
-            has_permission = True
-        
-    return has_permission
 
-def is_ANO_titan_rank(user: discord.User):
-    allowed_roles = config.ANO_TITAN_ROLES 
-    roles = {x.id for x in user.roles}
+def is_ANO_high_rank(user: discord.User) -> bool:
+    """Check if the user has a high rank in ANO."""
+    return _has_role(user, config.ANO_HIGH_RANK_ROLES)
 
-    has_permission = False
-    for role in roles:
-        if role in allowed_roles:
-            has_permission = True
-        
-    return has_permission
 
-def is_ANO_chief(user: discord.User):
-    allowed_roles = config.ANO_CHIEF_ROLES 
-    roles = {x.id for x in user.roles}
+def is_ANO_titan_rank(user: discord.User) -> bool:
+    """Check if the user is Titan rank or higher in ANO."""
+    return _has_role(user, config.ANO_TITAN_ROLES)
 
-    has_permission = False
-    for role in roles:
-        if role in allowed_roles:
-            has_permission = True
-        
-    return has_permission
+
+def is_ANO_chief(user: discord.User) -> bool:
+    """Check if the user is a Chief in ANO."""
+    return _has_role(user, config.ANO_CHIEF_ROLES)
+
