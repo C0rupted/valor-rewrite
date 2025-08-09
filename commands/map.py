@@ -1,4 +1,4 @@
-import discord, json, logging
+import discord, json, logging, io
 
 from discord import app_commands
 from discord.ext import commands
@@ -232,10 +232,12 @@ class Map(commands.Cog):
             # Add 50 pixel padding around crop region for context
             final = final.crop((x1 - 50, y1 - 50, x2 + 50, y2 + 50))
 
-        # Save the image to a temporary path and send as Discord file attachment
-        path = "/tmp/map.png"
-        final.save(path)
-        await interaction.followup.send(file=discord.File(path))
+        
+        # Save image to bytes buffer and send as Discord file.
+        with io.BytesIO() as img_binary:
+            final.save(img_binary, 'PNG')
+            img_binary.seek(0)
+            await interaction.followup.send(file=discord.File(fp=img_binary, filename="map.png"))
 
 
     @map.autocomplete("zone")

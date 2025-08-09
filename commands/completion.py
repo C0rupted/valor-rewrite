@@ -20,6 +20,8 @@ async def get_colored_percentage(percent: float) -> str:
     blue = "\033[1;36m"
     stop = "\033[0m"
 
+    percent = min(percent, 1) # Caps percent at 100%
+
     if percent >= 0.96:
         return f"{blue}{percent:>7.3%}{stop}"
     elif percent <= 0:
@@ -97,7 +99,13 @@ class Completion(commands.Cog):
         data = await request(f"https://api.wynncraft.com/v3/player/{username}?fullResult")
         characters = data["characters"]  # Dictionary of all characters for the player
         rank = data["supportRank"]       # Player rank (affects max allowed characters)
-        max_chars = SUPPORT_RANK_SLOTS.get(rank, 6)  # Default to 6 if rank not listed
+
+        # Addresses users that have more characters than their rank 
+        if SUPPORT_RANK_SLOTS.get(rank, 5) < len(characters): 
+            max_chars = len(characters)
+        else:
+            # Addresses everyone else
+            max_chars = SUPPORT_RANK_SLOTS.get(rank, 5)  
 
         # Initialize dictionary to accumulate totals for each tracked stat
         totals = {

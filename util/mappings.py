@@ -150,11 +150,12 @@ MAX_STATS = {
 
 # Slots available for support ranks, keyed by rank name or None (default)
 SUPPORT_RANK_SLOTS = {
-    None: 6,
-    "vip": 9,
-    "vipplus": 11,
-    "hero": 14,
-    "champion": 14
+    None: 5,
+    "vip": 6,
+    "vipplus": 7,
+    "hero": 9,
+    "heroplus": 12,
+    "champion": 15
 }
 
 # Maps base classes to their reskinned variants

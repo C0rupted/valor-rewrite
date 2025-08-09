@@ -67,8 +67,8 @@ class AvgCog(commands.Cog):
 
         # If guild tags are provided, resolve them to full names
         if guilds:
-            tags = guilds.split(",")
-            names, unidentified = await guild_names_from_tags(tags)
+            tags = [tag.strip() for tag in guilds.split(",") if tag.strip()]
+            names, _ = await guild_names_from_tags(tags)
 
             # If no valid guild names found, send error
             if not names:

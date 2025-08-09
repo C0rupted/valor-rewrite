@@ -198,7 +198,7 @@ class Pools(commands.Cog):
                 raid = data["Loot"][self.ASPECT_POOL_API_MAP[key]]
                 text = ""
                 for item in raid.get("Mythic", []):
-                    icon = EMOJI_MAP[ASPECT_TO_EMOJI_MAP[data["Icon"][item]]]
+                    icon = EMOJI_MAP.get(ASPECT_TO_EMOJI_MAP.get(data['Icon'][item]), "")
                     text += f"- {icon} {item}\n"
 
                 embed.add_field(name=f"{name} Mythic Aspects", value=text or "None", inline=False)
@@ -221,7 +221,7 @@ class Pools(commands.Cog):
         for rarity in ("Mythic", "Fabled", "Legendary"):
             items = raid_data.get(rarity, [])
             field = "\n".join(
-                f"- {EMOJI_MAP[ASPECT_TO_EMOJI_MAP[data['Icon'][item]]]} {item}" for item in items
+                f"- {EMOJI_MAP.get(ASPECT_TO_EMOJI_MAP.get(data['Icon'][item]), "")} {item}" for item in items
             )
             embed.add_field(name=f"{rarity} Aspects", value=field or "None", inline=False)
 

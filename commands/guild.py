@@ -228,6 +228,11 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
         """
         await interaction.response.defer()
 
+        try:
+            order = order.value
+        except (ValueError, AttributeError):
+            pass
+
         data = await get_data(guild, interaction)
         if data == "warn":
             return await interaction.followup.send(embed=ErrorEmbed("Default guild name and tag have not been set. Please get an admin to run `/guild_settings` and set it."))
@@ -267,11 +272,8 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
 
         # Sort by longest inactive first (or ascending)
         rows.sort(
-            key=lambda r: (
-                r[1] != "30d+", 
-                int(r[1].rstrip("dh").split("d")[0]) if r[1] != "30d+" else 9999
-            ),
-            reverse=(True if order == "desc" else False)
+            key=lambda r: (r[1] != "30d+", *map(int, (r[1].rstrip("dh").replace("d", " ").split() + ["0"])[:2])),
+            reverse=(order == "desc")
         )
 
         await PaginatedTextTableEmbed.send(

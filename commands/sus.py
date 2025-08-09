@@ -131,7 +131,7 @@ class Sus(commands.Cog):
             blacklisted_sus = 0
 
         # Assign suspiciousness score based on support rank
-        if wynn_rank in ["veteran", "champion", "hero", "vipplus"]:
+        if wynn_rank in ["veteran", "champion", "hero", "heroplus", "vipplus"]:
             wynn_rank_sus = 0.0  # trusted ranks => no suspicion
         elif wynn_rank == "vip":
             wynn_rank_sus = 25.0  # some suspicion for vip

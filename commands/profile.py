@@ -62,6 +62,7 @@ class Profile(commands.Cog):
                     "vip": 84,
                     "vipplus": 105,
                     "hero": 110,
+                    "heroplus": 130,
                     "champion": 175
                 }.get(data['supportRank'], 0)
         # Draw the username next to the badge (or default position)

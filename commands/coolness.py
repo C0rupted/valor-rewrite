@@ -52,6 +52,12 @@ class Coolness(commands.Cog):
         if guilds:
             tags = [tag.strip() for tag in guilds.split(",") if tag.strip()]
             guild_names, _ = await guild_names_from_tags(tags)
+        
+        # Try to convert the order input into a proper value
+        try:
+            order = order.value
+        except (ValueError, AttributeError):
+            pass
 
         # If no valid guilds were found, abort
         if not guild_names:
