@@ -2,8 +2,9 @@ import discord, json, logging, io
 
 from discord import app_commands
 from discord.ext import commands
-
 from PIL import Image, ImageDraw, ImageFont
+
+from core.antispam import rate_limit_check
 from util.requests import request
 
 
@@ -98,6 +99,7 @@ class Map(commands.Cog):
 
     @app_commands.command(name="map", description="Show the live Wynncraft territory map, optionally filtered by guild or zone.")
     @app_commands.describe(guild="Filter by guild tags (comma-separated)", zone="Optional region/zone name to crop to")
+    @rate_limit_check()
     async def map(self, interaction: discord.Interaction, guild: str = None, zone: str = None):
         """
         Main command handler for the territory map.

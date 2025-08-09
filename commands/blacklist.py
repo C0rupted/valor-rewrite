@@ -4,6 +4,7 @@ from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
 
+from core.antispam import rate_limit_check
 from core.config import config
 from database import Database
 from util.embeds import ErrorEmbed, InfoEmbed, PaginatedTextTableEmbed
@@ -22,6 +23,7 @@ class Blacklist(commands.GroupCog, name="blacklist"):
 
 
     @app_commands.command(description="List all players on the blacklist.")
+    @rate_limit_check()
     async def list(self, interaction: discord.Interaction):
         """
         Lists all players currently on the blacklist, along with:
@@ -162,6 +164,7 @@ class Blacklist(commands.GroupCog, name="blacklist"):
 
     @app_commands.command(description="Search the blacklist for a player.")
     @app_commands.describe(username="The player's username or UUID")
+    @rate_limit_check()
     async def search(self, interaction: discord.Interaction, username: str):
         """
         Searches the blacklist for a specific player.

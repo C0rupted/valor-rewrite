@@ -3,6 +3,7 @@ import discord, time
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from util.embeds import TextTableEmbed
 from util.requests import request
 
@@ -21,6 +22,7 @@ class Uptime(commands.Cog):
 
 
     @app_commands.command(name="uptime", description="Shows the uptime of all active Wynncraft worlds.")
+    @rate_limit_check()
     async def uptime(self, interaction: discord.Interaction):
         """
         Slash command to display the uptime and player count of all active Wynncraft worlds.

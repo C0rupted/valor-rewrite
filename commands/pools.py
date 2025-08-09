@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from util.embeds import ErrorEmbed
 from util.mappings import EMOJI_MAP, ITEM_TO_EMOJI_MAP, ASPECT_TO_EMOJI_MAP
 from util.requests import request_with_csrf
@@ -164,7 +165,8 @@ class Pools(commands.Cog):
             self.add_item(Pools.LootPoolSelect(cog))
 
 
-    @app_commands.command(name="lootpool", description="View the current loot pool for mythics and more")
+    @app_commands.command(name="lootpool", description="View the current loot pool for lootrun camps")
+    @rate_limit_check()
     async def lootpool(self, interaction: discord.Interaction):
         """
         Slash command to display loot pool overview with interactive select menu.
@@ -260,6 +262,7 @@ class Pools(commands.Cog):
 
 
     @app_commands.command(name="aspectpool", description="View current aspect pool for raids")
+    @rate_limit_check()
     async def aspectpool(self, interaction: discord.Interaction):
         """
         Slash command to display aspect pool overview with interactive select menu.

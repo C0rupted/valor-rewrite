@@ -88,6 +88,7 @@ class GuildCommands(commands.GroupCog, name="guild"):
 
     @app_commands.command(name="overview", description="View basic guild info")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
+    @rate_limit_check()
     async def overview(self, interaction: discord.Interaction, guild: str = None):
         """
         Display an overview of guild stats including level, owner, member count, territories, wars, and creation date.
@@ -139,6 +140,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
 
     @app_commands.command(name="members", description="View a list of all players in a guild")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
+    @rate_limit_check()
     async def members(self, interaction: discord.Interaction, guild: str = None):
         """
         Display all guild members grouped by rank with their join dates in a paginated embed.

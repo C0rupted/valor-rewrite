@@ -2,6 +2,7 @@ import discord,  datetime, time, uuid
 from discord import app_commands, Embed
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from core.config import config
 from database import Database
 from util.embeds import ErrorEmbed
@@ -17,6 +18,7 @@ class Sus(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="sus", description="Checks if a Wynncraft player is suspicious.")
+    @rate_limit_check()
     async def sus(self, interaction: discord.Interaction, username: str):
         """
         Slash command to check if a Wynncraft player is suspicious based on various criteria.

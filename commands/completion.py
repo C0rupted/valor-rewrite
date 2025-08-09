@@ -3,6 +3,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from core.antispam import rate_limit_check
 from util.embeds import ErrorEmbed
 from util.requests import request
 from util.mappings import MAX_STATS, SUPPORT_RANK_SLOTS
@@ -91,6 +92,7 @@ class Completion(commands.Cog):
 
     @app_commands.command(name="completion", description="Display a profile card for a player")
     @app_commands.describe(username="The player's username")
+    @rate_limit_check()
     async def completion(self, interaction: discord.Interaction, username: str):
         # Defer response while processing data
         await interaction.response.defer()

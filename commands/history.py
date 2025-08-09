@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
 
+from core.antispam import rate_limit_check
 from database import Database
 from util.embeds import ErrorEmbed, PaginatedTextTable
 from util.requests import request
@@ -19,6 +20,7 @@ class History(commands.Cog):
 
     @app_commands.command(name="history", description="Shows the guild membership history of a player.")
     @app_commands.describe(username="The player's username")
+    @rate_limit_check()
     async def history(self, interaction: discord.Interaction, username: str):
         """
         Fetch and display a player's guild membership history combining database logs and API data.
