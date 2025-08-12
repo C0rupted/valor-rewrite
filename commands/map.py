@@ -5,6 +5,8 @@ from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 
 from core.antispam import rate_limit_check
+from util.embeds import ErrorEmbed
+from util.guilds import guild_names_from_tags
 from util.requests import request
 
 
@@ -169,6 +171,12 @@ class Map(commands.Cog):
             cx = (min(x1, x2) + max(x1, x2)) / 2
             cy = (min(y1, y2) + max(y1, y2)) / 2
             centers[name] = (cx, cy)
+        
+        # Keep track of the positions of upper-left most territory and lower-right most territory 
+        # if certain guilds have been specified, so rest of the map can be cropped out.
+        if guild_tags:
+            min_x, min_y = float("inf"), float("inf")
+            max_x, max_y = float("-inf"), float("-inf")
 
         # Draw each territory as a colored rectangle with label
         for name, data in terr_res["territories"].items():
@@ -193,6 +201,13 @@ class Map(commands.Cog):
             left, right = sorted([x1, x2])
             top, bottom = sorted([y1, y2])
             cx, cy = (left + right) / 2, (top + bottom) / 2
+
+            # Track bounds if guild filtering is active
+            if guild_tags:
+                min_x = min(min_x, left)
+                min_y = min(min_y, top)
+                max_x = max(max_x, right)
+                max_y = max(max_y, bottom)
 
             # Draw filled rectangle on territory layer
             draw_territory.rectangle([left, top, right, bottom], fill=fill)
@@ -225,6 +240,16 @@ class Map(commands.Cog):
         composed = Image.alpha_composite(main_map.convert("RGBA"), base)
         composed = Image.alpha_composite(composed, terr_layer)
         final = Image.alpha_composite(composed, label_layer)
+
+        # Crop final image to specified guild's territories if specified
+        if guild_tags and not zone:
+            if min_x != float("inf"):
+                final = final.crop((min_x - 50, min_y - 50, max_x + 50, max_y + 50))
+            else:
+                return await interaction.followup.send(embed=ErrorEmbed(
+                        f"Specified guild{"s are" if len(guild_tags) > 1 else " is"} not currently on the map."
+                    )
+                )
 
         # Crop final image to specified zone region if requested
         if zone and zone in map_regions:
