@@ -196,22 +196,31 @@ class Profile(commands.Cog):
             # Player is not in a guild - draw placeholder text
             draw.text((505, 390), "No Guild", white, text_font, anchor="ma")
 
-        # Draw additional player stats from featuredStats field
-        stats = data["featuredStats"]
-        try:
+        # Pull player stats from a bunch of different parts of the result while handling hidden stats
+        stats = data.get("featuredStats") or {}
+        global_data = data.get("globalData") or {}
+
+        playtime = stats.get("playtime") or data.get("playtime")
+        total_level = stats.get("globalData.totalLevel") or global_data.get("totalLevel")
+        mobs_killed = stats.get("globalData.mobsKilled") or global_data.get("mobsKilled")
+        chests_found = stats.get("globalData.chestsFound") or global_data.get("chestsFound")
+        completed_quests = stats.get("globalData.completedQuests") or global_data.get("completedQuests")
+
+        # Draw player stats, if found
+        if playtime or total_level or mobs_killed or chests_found or completed_quests:
             player_stats = [
-                f'{stats["playtime"]} Hours',
-                f'{stats["globalData.totalLevel"]} Levels',
-                f'{stats["globalData.mobsKilled"]} Mobs',
-                f'{stats["globalData.chestsFound"]} Chests',
-                f'{stats["globalData.completedQuests"]} Quests'
+                f'{playtime} Hours',
+                f'{total_level} Levels',
+                f'{mobs_killed} Mobs',
+                f'{chests_found} Chests',
+                f'{completed_quests} Quests'
             ]
             # Draw each stat on the right side of the profile
             i = 0
             for stat in player_stats:
                 draw.text((819, 333 + (i * 29)), stat, white, stat_text_font, anchor="ra")
                 i += 1
-        except (KeyError, TypeError):
+        else:
             # If any stats missing or data hidden, draw black rectangle and fallback message
             draw.rectangle([(623, 326), (823, 476)], black)  # Overwrite default stat labels
             draw.text((723, 389), "Stats are API hidden.", white, text_font, anchor="ma")
