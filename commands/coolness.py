@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord import app_commands
 
 from core.antispam import rate_limit_check
+from core.settings import SettingsManager
 from database import Database
 from util.embeds import ErrorEmbed, PaginatedTextTableEmbed
 from util.guilds import guild_names_from_tags
@@ -33,7 +34,7 @@ class Coolness(commands.Cog):
     async def coolness(
         self,
         interaction: discord.Interaction,
-        guilds: str,
+        guilds: str = None,
         range: str = "7",
         order: app_commands.Choice[str] = "DESC"
     ):
@@ -52,6 +53,14 @@ class Coolness(commands.Cog):
         if guilds:
             tags = [tag.strip() for tag in guilds.split(",") if tag.strip()]
             guild_names, _ = await guild_names_from_tags(tags)
+        else:
+            guild_name = SettingsManager("guild", interaction.guild.id).get("guild_name")
+            guild_tag = SettingsManager("guild", interaction.guild.id).get("guild_tag")
+
+            if guild_name and guild_tag:
+                guild_names = [guild_name]
+            else:
+                return await interaction.followup.send(embed=ErrorEmbed("Default guild name and tag have not been set. Please get an admin to run `/guild_settings` and set it."))
         
         # Try to convert the order input into a proper value
         try:
