@@ -73,7 +73,7 @@ class AnnihilationTracker(commands.Cog):
                         f"Most recent Annie was at <t:{timestamp}:f> (<t:{timestamp}:R>)"
                     ),
                     color=ANNI_EMBED_COLOR
-                )
+                ).set_footer(text=f"Did Annie wake up? Ask an ANO high rank to report it!")
             )
 
         # Otherwise, show the next scheduled Annihilation
@@ -82,7 +82,7 @@ class AnnihilationTracker(commands.Cog):
                 title="Annihilation Tracker",
                 description=f"Next Annihilation is at <t:{timestamp}:f> (<t:{timestamp}:R>)",
                 color=ANNI_EMBED_COLOR
-            )
+            ).set_footer(text=f"Is that time inaccurate? Report it to an ANO high rank!")
         )
 
 
@@ -165,7 +165,7 @@ class AnnihilationTracker(commands.Cog):
 
             return await interaction.followup.send(
                 embed=embed,
-                view=ReportAnnihilationView(interaction.user, new_ts)
+                view=ReportAnnihilationView(interaction.user, new_ts, self.save_annihilation)
             )
 
         # Save the new report directly if no active one exists
@@ -185,7 +185,7 @@ class ReportAnnihilationView(View):
     Interactive confirmation view for overwriting an existing Annihilation time.
     """
 
-    def __init__(self, author: discord.User, new_timestamp: int, timeout: float = 30.0):
+    def __init__(self, author: discord.User, new_timestamp: int, func, timeout: float = 30.0):
         """
         Args:
             author (discord.User): The user who initiated the overwrite request.
@@ -195,6 +195,7 @@ class ReportAnnihilationView(View):
         super().__init__(timeout=timeout)
         self.author = author
         self.new_timestamp = new_timestamp
+        self.function = func
         self.confirmed = False
         self.message: Message = None
 
@@ -229,6 +230,7 @@ class ReportAnnihilationView(View):
             ),
             view=None
         )
+        self.function(self.new_timestamp)
         self.stop()
 
 
