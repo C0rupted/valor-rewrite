@@ -54,6 +54,7 @@ class Coolness(commands.Cog):
             tags = [tag.strip() for tag in guilds.split(",") if tag.strip()]
             guild_names, _ = await guild_names_from_tags(tags)
         else:
+            # If guild tags is not provided, use the default values set for that server
             guild_name = SettingsManager("guild", interaction.guild.id).get("guild_name")
             guild_tag = SettingsManager("guild", interaction.guild.id).get("guild_tag")
 

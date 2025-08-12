@@ -609,7 +609,7 @@ async def construct_embed(key: str, user_id: str, scope: str) -> discord.Embed:
     # Current value and default value (capitalize, remove quotes for readability)
     embed.add_field(
         name="Current Value",
-        value=(str(current).replace("'", "").capitalize() if current else "None"),
+        value=(str(current).replace("'", "") if current else "None"),
         inline=False,
     )
     embed.add_field(

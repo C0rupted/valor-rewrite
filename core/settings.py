@@ -24,9 +24,9 @@ SETTINGS_SCHEMAS = {
     },
     "guild": {
         # Default guild name for commands
-        "guild_name": {"type": "text", "default": "",  "description": "Default guild name for commands"},
+        "guild_name": {"type": "text", "default": "",  "description": "Default guild name for commands like /guild and /coolness"},
         # Default guild tag for commands
-        "guild_tag": {"type": "text", "default": "",  "description": "Default guild tag for commands"},
+        "guild_tag": {"type": "text", "default": "",  "description": "Default guild tag for commands like /guild and /coolness"},
     }
 }
 
