@@ -1,4 +1,4 @@
-import os, time
+import os, time, platform, multiprocessing
 from core.bot import run_bot
 
 
@@ -14,6 +14,14 @@ if __name__ == "__main__":
     Execution:
         python main.py
     """
+
+    # On macOS, using the 'fork' start method is considered unsafe by Python’s multiprocessing docs,
+    # because copying the parent process's memory state without reinitialization can lead to issues
+    # with threads, locks, and certain system calls.
+    # However, 'fork' is the default on most Unix systems (Linux, BSD) and is often faster,
+    # and it also helps fix connection issues with DB when bot is left idle for too long.
+    if platform.system() == "Darwin": # Darwin = MacOS
+        multiprocessing.set_start_method("fork")
 
     # Timzeone is critical for all time-related operations,this maintains consistency across all testing environments.
     os.environ["TZ"] = "Europe/London"
