@@ -63,7 +63,7 @@ class Database:
         except OperationalError:
             if retry:
                 logging.warning(f"Retrying SQL query: {query}")
-                Database.fetch(query, args=args, retry=False)
+                await Database.fetch(query, args=args, retry=False)
             else:
                 logging.error(f"SQL query failed: {query}")
 
