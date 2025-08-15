@@ -61,15 +61,16 @@ class Warcount(commands.Cog):
 
         # If guild-wise aggregation is requested, query aggregated wars per guild directly
         if guild_wise:
-            query = """
+            query = f"""
 SELECT guild, SUM(delta) AS wars
 FROM player_delta_record
-WHERE label = 'g_wars' AND time BETWEEN %s AND %s
+WHERE label = 'g_wars' {"AND time BETWEEN %s AND %s" if range else ""}
 GROUP BY guild
 ORDER BY wars DESC
 LIMIT 100;
 """
-            res = await Database.fetch(query, (left, right))
+            
+            res = await Database.fetch(query, (left, right) if range else ())
 
             # Prepare header and rows for leaderboard table
             headers = ["Guild", "Wars"]
