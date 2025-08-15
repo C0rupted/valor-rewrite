@@ -1,5 +1,9 @@
 import aiomysql, logging
+
+from pymysql.err import OperationalError
+
 from core.config import config
+
 
 
 class Database:
@@ -39,21 +43,31 @@ class Database:
 
 
     @classmethod
-    async def fetch(cls, query, args=None):
+    async def fetch(cls, query, args=None, retry: bool = True):
         """
         Execute a SELECT query that returns multiple rows.
         
         Args:
             query (str): The SQL query to execute.
             args (tuple or list, optional): Parameters to safely substitute in query.
+            retry (bool): Whether to retry query if it fails for some reason
         
         Returns:
             List[Dict]: List of rows, each row is a dictionary mapping column names to values.
         """
-        async with cls._pool.acquire() as conn:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(query, args or ())
-                return await cur.fetchall()
+        try:
+            async with cls._pool.acquire() as conn:
+                async with conn.cursor(aiomysql.DictCursor) as cur:
+                    await cur.execute(query, args or ())
+                    return await cur.fetchall()
+        except OperationalError:
+            if retry:
+                logging.warning(f"Retrying SQL query: {query}")
+                Database.fetch(query, args=args, retry=False)
+            else:
+                logging.error(f"SQL query failed: {query}")
+
+
 
 
     @classmethod
