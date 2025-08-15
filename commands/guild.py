@@ -89,6 +89,7 @@ class GuildCommands(commands.GroupCog, name="guild"):
     @app_commands.command(name="overview", description="View basic guild info")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
     @rate_limit_check()
+    @app_commands.guild_only() # Make sure this command is only ran inside servers due to its reliance on interaction.guild.id
     async def overview(self, interaction: discord.Interaction, guild: str = None):
         """
         Display an overview of guild stats including level, owner, member count, territories, wars, and creation date.
@@ -122,6 +123,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
 
     @app_commands.command(name="online", description="View online players of the guild")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
+    @app_commands.guild_only() # Make sure this command is only ran inside servers due to its reliance on interaction.guild.id
     async def online(self, interaction: discord.Interaction, guild: str = None):
         """
         Show a list or embed of online members in the specified (or default) guild.
@@ -141,6 +143,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
     @app_commands.command(name="members", description="View a list of all players in a guild")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
     @rate_limit_check()
+    @app_commands.guild_only() # Make sure this command is only ran inside servers due to its reliance on interaction.guild.id
     async def members(self, interaction: discord.Interaction, guild: str = None):
         """
         Display all guild members grouped by rank with their join dates in a paginated embed.
@@ -179,6 +182,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
     @app_commands.command(name="gxp", description="View the GXP contributions of each player in a guild")
     @app_commands.describe(guild="The guild name or prefix of the target guild")
     @rate_limit_check()
+    @app_commands.guild_only() # Make sure this command is only ran inside servers due to its reliance on interaction.guild.id
     async def gxp(self, interaction: discord.Interaction, guild: str = None):
         """
         Show Guild Experience (GXP) contributions by each player, sorted descending.
@@ -222,6 +226,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
         app_commands.Choice(name="Descending", value="desc")
     ])
     @rate_limit_check()
+    @app_commands.guild_only() # Make sure this command is only ran inside servers due to its reliance on interaction.guild.id
     async def activity(self, interaction: discord.Interaction, guild: str = None, order: app_commands.Choice[str] = "desc"):
         """
         Display last join times of guild members, sorted by inactivity.

@@ -93,7 +93,6 @@ class AnnihilationTracker(commands.Cog):
     @app_commands.describe(
         time_until="Time until next Annihilation (e.g. '2h30m', '1h 45m') or 'none'"
     )
-    @app_commands.guild_only()
     async def report_annihilation(self, interaction: discord.Interaction, time_until: str):
         """
         Command to report or update the Annihilation time.

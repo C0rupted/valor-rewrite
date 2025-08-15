@@ -654,6 +654,7 @@ class SettingsCommands(commands.Cog):
     @app_commands.command(name="guild_settings", description="View and edit this server's settings")
     @checks.has_permissions(administrator=True)
     @app_commands.describe(setting="The setting you want to manage")
+    @app_commands.guild_only() # Make sure this command is only ran inside servers due to its reliance on interaction.guild.id
     async def guild_settings(self, interaction: discord.Interaction, setting: str):
         """
         Slash command to view and edit a guild setting.

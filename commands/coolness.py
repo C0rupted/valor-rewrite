@@ -31,6 +31,7 @@ class Coolness(commands.Cog):
         app_commands.Choice(name="Descending", value="DESC"),
     ])
     @rate_limit_check()  # Anti-spam check to limit how often this command can be run
+    @app_commands.guild_only() # Make sure this command is only ran inside servers due to its reliance on interaction.guild.id
     async def coolness(
         self,
         interaction: discord.Interaction,
