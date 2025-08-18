@@ -7,7 +7,7 @@ from core.config import config
 from database import Database
 from util.embeds import ErrorEmbed
 from util.requests import request
-from util.uuid import get_uuid_from_name
+from util.uuid import get_uuid_from_name, detect_uuid_or_name, get_name_from_uuid
 
 
 class Sus(commands.Cog):
@@ -30,27 +30,20 @@ class Sus(commands.Cog):
         # Defer the response as this may take some time to fetch data
         await interaction.response.defer()
 
-        # Check if player exists by trying to get their UUID from the username
-        player_exists = await get_uuid_from_name(username)
-        if not player_exists:
-            # If player doesn't exist, respond with error embed
-            return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
-
-        # Try Mojang's legacy API to get the UUID and username
-        res = await request(f"https://api.mojang.com/users/profiles/minecraft/{username}")
-        if res:
-            # If Mojang API returns data, extract id and name
-            id = res.get("id")
-            name = res.get("name")
+        # Get the UUID and username
+        input_type = detect_uuid_or_name(username)
+        if input_type == "uuid":
+            id = username
+            name = await get_name_from_uuid(username)
+        elif input_type == "name":
+            id = await get_uuid_from_name(username)
+            name = username
         else:
-            # If Mojang API fails, fallback to Minecraft Services API
-            fallback_res = await request(f"https://api.minecraftservices.com/minecraft/profile/lookup/name/{username}")
-            if not fallback_res:
-                # If fallback API also fails, notify user
-                return await interaction.followup.send(embed=ErrorEmbed("Both Mojang APIs failed. Username may not exist."))
-            # Extract id and name from fallback API
-            id = fallback_res.get("id")
-            name = fallback_res.get("name")
+            return await interaction.followup.send(embed=ErrorEmbed("Invalid input."))
+
+        # If no UUID found for player, return error message
+        if not id:
+            return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 
         # Convert UUID string (without dashes) to a standard dashed UUID string
         dashed_uuid = str(uuid.UUID(hex=id))
@@ -64,10 +57,10 @@ class Sus(commands.Cog):
                 hypixel_join = float(int(hypixel_data["player"]["firstLogin"] / 1000))
             else:
                 # If player data missing or unsuccessful, inform user of Hypixel API issue
-                return await interaction.followup.send(embed=ErrorEmbed("Hypixel API Issue"))
+                return await interaction.followup.send(embed=ErrorEmbed("Player has never logged onto Hypixel before?! That's a bit sus..."))
         except KeyError:
             # Catch key errors from malformed response and notify
-            return await interaction.followup.send(embed=ErrorEmbed("Hypixel API Issue"))
+            return await interaction.followup.send(embed=ErrorEmbed("Player has never logged onto Hypixel before?! That's a bit sus..."))
 
         # Fetch Wynncraft player data from Wynncraft API using dashed UUID
         wynn_data = await request(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult")
@@ -88,7 +81,10 @@ class Sus(commands.Cog):
             wynn_rank = wynn_data["supportRank"]
 
             # Sum total level across all characters
-            wynn_level = sum([character["level"] for _, character in wynn_data["characters"].items()])
+            try:
+                wynn_level = sum([character["level"] for _, character in wynn_data["characters"].items()])
+            except AttributeError:
+                wynn_level = "API Hidden"
 
             # Extract total playtime (hours)
             wynn_playtime = wynn_data["playtime"]
@@ -113,7 +109,10 @@ class Sus(commands.Cog):
         wynn_join_sus = round(max(0, (time.time() - wynn_join_timestamp - 63072000) * -1) * 100 / 63072000, 1)
 
         # Suspiciousness if Wynncraft total level is below 210
-        wynn_level_sus = round(max(0, (wynn_level - 210) * -1) * 100 / 210, 1)
+        try:
+            wynn_level_sus = round(max(0, (wynn_level - 210) * -1) * 100 / 210, 1)
+        except:
+            wynn_level_sus = 100.0
 
         # Suspiciousness if playtime is below 800 hours
         wynn_playtime_sus = round(max(0, (wynn_playtime - 800) * -1) * 100 / 800, 1)
