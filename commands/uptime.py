@@ -64,7 +64,7 @@ class Uptime(commands.Cog):
 
             # Count the number of players currently on this server
             player_count = len(info.get("players", []))
-            players_str = f"{player_count}/45"
+            players_str = f"{player_count}/55"
 
             # Append server info row: [World name, uptime string, player count string]
             result.append([server, uptime_str, players_str])
