@@ -1,0 +1,65 @@
+import discord
+from discord import app_commands
+from discord.ext import commands
+
+
+class HelpCog(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @app_commands.command(
+        name="help",
+        description="Get information about the bot and where to find support."
+    )
+    async def help(self, interaction: discord.Interaction):
+        """
+        Sends a help/info embed with links, support info, and context about Valor Lite.
+        """
+        await interaction.response.defer()
+
+        # Embed setup
+        embed = discord.Embed(
+            title="⚔️ Valor Lite",
+            url="https://titansvalor.org/",
+            description=(
+                "Valor Lite is the lightweight, distributable version of "
+                "**Titans Valor's original Valor bot**.\n\n"
+                "While some advanced features remain exclusive to the "
+                "[Titans Valor Discord](https://discord.gg/h8XUHkR), "
+                "Valor Lite brings many of the core tools to everyone."
+            ),
+            colour=discord.Color.blurple()
+        )
+
+        # Thumbnail (bot logo/sticker)
+        embed.set_thumbnail(
+            url="https://media.discordapp.net/stickers/861507133232250940.webp?size=320&quality=lossless"
+        )
+
+        # Add sections
+        embed.add_field(
+            name="📢 Updates & Announcements",
+            value="Join the Titans Valor Discord "
+                  "for the latest news and feature updates.",
+            inline=False
+        )
+        embed.add_field(
+            name="🛠️ Support",
+            value="Need help or found an issue? Create a ticket in the "
+                  "Titans Valor Discord.",
+            inline=False
+        )
+
+        # Footer
+        embed.set_footer(
+            text="Made and powered by Titans Valor",
+            icon_url="https://media.discordapp.net/stickers/861507133232250940.webp?size=320&quality=lossless"
+        )
+
+        # Send embed
+        await interaction.followup.send(embed=embed)
+
+
+# Cog setup function for bot
+async def setup(bot: commands.Bot):
+    await bot.add_cog(HelpCog(bot))
