@@ -39,14 +39,13 @@ class HelpCog(commands.Cog):
         # Add sections
         embed.add_field(
             name="📢 Updates & Announcements",
-            value="Join the Titans Valor Discord "
+            value="Join our discord server "
                   "for the latest news and feature updates.",
             inline=False
         )
         embed.add_field(
             name="🛠️ Support",
-            value="Need help or found an issue? Create a ticket in the "
-                  "Titans Valor Discord.",
+            value="Need help or found an issue? Create a ticket in our server.",
             inline=False
         )
 
