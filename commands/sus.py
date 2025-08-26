@@ -66,9 +66,12 @@ class Sus(commands.Cog):
         wynn_data = await request(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult")
 
         # Check if 'username' key exists in response to verify successful fetch
-        if "username" not in wynn_data:
-            # If missing, respond with error about Wynncraft API
-            return await interaction.followup.send(embed=ErrorEmbed("Wynn API Issue"))
+        try:
+            if "username" not in wynn_data:
+                # If missing, respond with error about Wynncraft API
+                return await interaction.followup.send(embed=ErrorEmbed("Wynn API Issue"))
+        except TypeError:
+            return await interaction.followup.send(embed=ErrorEmbed("Player has never logged onto Wynncraft."))
 
         try:
             # Extract player's Wynncraft join date (YYYY-MM-DD)
