@@ -37,11 +37,11 @@ async def get_data(guild: str, interaction: discord.Interaction):
     return res
 
 
-async def get_online(data, return_embed: bool = False):
+async def get_online(data):
     """
     Process guild data to get a list or embed of online members.
 
-    Returns either a simple string table or a Discord Embed depending on `return_embed`.
+    Returns a list of online players, the current amount online and a codeblock-table string.
     """
     if "members" not in data:
         return None
@@ -53,28 +53,27 @@ async def get_online(data, return_embed: bool = False):
         for name, member in v.items()
         if member["online"]
     ]
+    
+    hidden_players = data["online"] - len(online_members)
 
-    if not online_members:
-        if return_embed:
-            return discord.Embed(
-                title=f"Members of {data['name']} online (0)",
-                description="```isbl\nThere are no members online.\n```",
-                color=0x7785cc
-            )
-        else:
-            return "```isbl\nThere are no members online.\n```"
+    if not online_members and not hidden_players:
+        return "```isbl\nThere are no members online.\n```"
+    
 
     embed = TextTableEmbed(
         ["Name", "Rank", "World"],
         sorted(online_members, key=lambda x: len(x[1]), reverse=True),
-        title=f"Members of {data['name']} online ({len(online_members)})",
-        color=0x7785cc,
     )
 
-    if return_embed:
-        return embed
-    else:
-        return embed.description
+    description = embed.description
+
+    if len(online_members) == 0 and hidden_players:
+        return f"```isbl\n{hidden_players} players are hidden.\n```"
+
+    if hidden_players:
+        description = description[:-3] + f"\n{hidden_players} players are hidden.\n```"
+
+    return description
 
 
 
@@ -116,7 +115,7 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
         online_desc = await get_online(data)
 
         embed = discord.Embed(title=f"{data['name']}: Overview", description=desc, color=0x7785cc)
-        embed.add_field(name="Online Members", value=online_desc)
+        embed.add_field(name=f"Online Members ({data["online"]})", value=online_desc)
 
         return await interaction.followup.send(embed=embed)
 
@@ -135,7 +134,12 @@ Created: {datetime.datetime.fromisoformat(data["created"][:-1]).strftime("%m/%d/
             return await interaction.followup.send(embed=ErrorEmbed("Default guild name and tag have not been set. Please get an admin to run `/guild_settings` and set it."))
         if not data:
             return await interaction.followup.send(embed=ErrorEmbed("Error fetching guild data"))
-        embed = await get_online(data, return_embed=True)
+        description = await get_online(data)
+        embed = discord.Embed(
+                title=f"Members of {data['name']} online ({data["online"]})",
+                description=description,
+                color=0x7785cc
+            )
 
         await interaction.followup.send(embed=embed)
 
