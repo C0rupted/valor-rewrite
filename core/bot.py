@@ -85,6 +85,7 @@ class ValorBot(commands.Bot):
             "commands.utilities",
             "commands.warcount",
             # Event listeners
+            "listeners.command_logger",
             "listeners.errors",
             # Background services
             "services.weekly_ticket_post"
