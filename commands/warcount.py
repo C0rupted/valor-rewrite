@@ -149,6 +149,7 @@ ORDER BY all_wars DESC;"""
         # Filter and collect player warcount data according to input filters
         for rank, row in enumerate(res):
             name, total, guild = row["name"], row["all_wars"], row["guild"]
+            if not name: continue  # Skip entries with no name
             classes_count = [row[f"{c}_count"] for c in listed_classes]
             
             if guild_filter and (guild not in guild_names):
