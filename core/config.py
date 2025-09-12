@@ -30,8 +30,8 @@ class Config:
     ANO_COMMANDS_GUILD_IDS = json.loads(os.getenv("ANO_COMMANDS_GUILD_IDS"))
 
     # Role IDs or names for ANO members and military ranks
-    ANO_MEMBER_ROLE = int(os.getenv("ANO_MEMBER_ROLE"))
-    ANO_MILITARY_ROLE = int(os.getenv("ANO_MILITARY_ROLE"))
+    ANO_MEMBER_ROLES = {int(role) for role in json.loads(os.getenv("ANO_MEMBER_ROLES"))}
+    ANO_MILITARY_ROLES = {int(role) for role in json.loads(os.getenv("ANO_MILITARY_ROLES"))}
 
     # Lists of role IDs for high ranks, titans, chiefs in ANO
     ANO_HIGH_RANK_ROLES = {int(role) for role in json.loads(os.getenv("ANO_HIGH_RANK_ROLES"))}

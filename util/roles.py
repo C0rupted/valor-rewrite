@@ -22,10 +22,6 @@ def _has_role(user: discord.User, allowed_roles) -> bool:
     except AttributeError:
         return False  # In case `user` has no `.roles` (not a discord.Member object)
 
-    # Ensure allowed_roles is a set for easy comparison
-    if not isinstance(allowed_roles, list):
-        allowed_roles = {allowed_roles}
-
     # Intersection check — returns True if there's any overlap
     return not user_roles.isdisjoint(allowed_roles)
 
@@ -33,12 +29,12 @@ def _has_role(user: discord.User, allowed_roles) -> bool:
 
 def is_ANO_member(user: discord.User) -> bool:
     """Check if the user is an ANO member."""
-    return _has_role(user, config.ANO_MEMBER_ROLE)
+    return _has_role(user, config.ANO_MEMBER_ROLES)
 
 
 def is_ANO_military_member(user: discord.User) -> bool:
     """Check if the user is an ANO military member."""
-    return _has_role(user, config.ANO_MILITARY_ROLE)
+    return _has_role(user, config.ANO_MILITARY_ROLES)
 
 
 def is_ANO_high_rank(user: discord.User) -> bool:

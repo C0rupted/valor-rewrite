@@ -43,16 +43,13 @@ class Uniform(commands.Cog):
         - Applies a transparent uniform overlay PNG (male/female).
         - Sends the final composited skin image back as a file attachment.
         """
+        await interaction.response.defer()
+
         # Check if the user has permission to use this command (ANO member or testing mode)
         if not is_ANO_member(interaction.user):
-            await interaction.response.send_message(
-                embed=ErrorEmbed("Only ANO members can wear this uniform!"),
-                ephemeral=True
+            return await interaction.followup.send(
+                embed=ErrorEmbed("Only ANO members can wear this uniform!")
             )
-            return
-
-        # Acknowledge command and defer response as skin fetching & processing takes time
-        await interaction.response.defer()
 
         # Fetch UUID for the given username from Mojang API
         uuid = (await request(f"https://api.mojang.com/users/profiles/minecraft/{username}")).get("id", "")
