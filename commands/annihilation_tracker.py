@@ -108,7 +108,7 @@ class AnnihilationTracker(commands.Cog):
 
         # Permission check
         if not is_ANO_high_rank(interaction.user) and not config.TESTING:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 embed=ErrorEmbed("You do not have permission to report an Annihilation time."),
                 ephemeral=True
             )
@@ -116,7 +116,7 @@ class AnnihilationTracker(commands.Cog):
         # Special case: remove the recorded time
         if time_until.lower() == "none":
             self.save_annihilation(0)
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 embed=discord.Embed(
                     title="Annihilation Time Deleted",
                     description="Annihilation time has been deleted.",
