@@ -39,7 +39,7 @@ class BoardView(discord.ui.View):
         user_id,
         data: list[tuple[str, int]],
         title: str = "Leaderboard",
-        max_page: int = 50,
+        max_page: int = None,
         stat_counter: str = "Value",
         is_guild_board: bool = False,
         use_text_embed: bool = True,
@@ -48,7 +48,7 @@ class BoardView(discord.ui.View):
         super().__init__()
         self.user_id = user_id
         self.data = data
-        self.max_page = max_page
+        self.max_page = max_page if max_page is not None else math.ceil(len(data) / 10)
         self.title = title
         if headers:
             # Use custom headers prepended by "Rank"

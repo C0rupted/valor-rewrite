@@ -1,4 +1,4 @@
-import discord, logging
+import discord
 
 from discord import app_commands
 from discord.ext import commands
@@ -93,7 +93,6 @@ LIMIT 100;
                 start = view.page * 10
                 end = start + 10
                 sliced = view.data[start:end]
-                logging.info(sliced)
                 # Add ranking number to each row
                 for i in range_alt(len(sliced)):
                     sliced[i] = [f"{i+start+1}.", sliced[i][0], sliced[i][1]]
