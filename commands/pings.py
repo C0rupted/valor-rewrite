@@ -74,7 +74,7 @@ class PingsButton(discord.ui.Button):
                 ephemeral=True
             )
 
-        if not is_ANO_military_member(interaction.user) and not config.TESTING:
+        if not is_ANO_military_member(interaction.user):
             return await interaction.response.send_message(
                 embed=ErrorEmbed("No Permissions"), ephemeral=True
             )
@@ -115,7 +115,7 @@ class Pings(commands.Cog):
         - Permission check for ANO military members or testing mode.
         - Sends an embed describing available role pings with interactive buttons.
         """
-        if not is_ANO_military_member(interaction.user) and not config.TESTING:
+        if not is_ANO_military_member(interaction.user):
             return await interaction.response.send_message(
                 embed=ErrorEmbed("No Permissions"),
                 ephemeral=True

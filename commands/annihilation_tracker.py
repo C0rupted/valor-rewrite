@@ -107,7 +107,7 @@ class AnnihilationTracker(commands.Cog):
         await interaction.response.defer()
 
         # Permission check
-        if not is_ANO_high_rank(interaction.user) and not config.TESTING:
+        if not is_ANO_high_rank(interaction.user):
             return await interaction.followup.send(
                 embed=ErrorEmbed("You do not have permission to report an Annihilation time."),
                 ephemeral=True

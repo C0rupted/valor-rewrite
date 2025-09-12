@@ -44,7 +44,7 @@ class Uniform(commands.Cog):
         - Sends the final composited skin image back as a file attachment.
         """
         # Check if the user has permission to use this command (ANO member or testing mode)
-        if not is_ANO_member(interaction.user) and not config.TESTING:
+        if not is_ANO_member(interaction.user):
             await interaction.response.send_message(
                 embed=ErrorEmbed("Only ANO members can wear this uniform!"),
                 ephemeral=True

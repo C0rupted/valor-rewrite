@@ -47,8 +47,8 @@ class Admin(commands.GroupCog, name="admin"):
             value (int): Number of bonus tickets to add.
         """
 
-        # Permission check — only ANO chiefs OR when config.TESTING is True
-        if not is_ANO_chief(interaction.user) and not config.TESTING:
+        # Permission check — only ANO chiefs can use this command
+        if not is_ANO_chief(interaction.user):
             return await interaction.response.send_message(
                 embed=ErrorEmbed("You do not have permission to use this command."),
                 ephemeral=True  # Only visible to the command user
