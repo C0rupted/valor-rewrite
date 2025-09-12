@@ -30,13 +30,13 @@ class Config:
     ANO_COMMANDS_GUILD_IDS = json.loads(os.getenv("ANO_COMMANDS_GUILD_IDS"))
 
     # Role IDs or names for ANO members and military ranks
-    ANO_MEMBER_ROLE = os.getenv("ANO_MEMBER_ROLE")
-    ANO_MILITARY_ROLE = os.getenv("ANO_MILITARY_ROLE")
+    ANO_MEMBER_ROLE = int(os.getenv("ANO_MEMBER_ROLE"))
+    ANO_MILITARY_ROLE = int(os.getenv("ANO_MILITARY_ROLE"))
 
     # Lists of role IDs for high ranks, titans, chiefs in ANO
-    ANO_HIGH_RANK_ROLES = json.loads(os.getenv("ANO_HIGH_RANK_ROLES"))
-    ANO_TITAN_ROLES = json.loads(os.getenv("ANO_TITAN_ROLES"))
-    ANO_CHIEF_ROLES = json.loads(os.getenv("ANO_CHIEF_ROLES"))
+    ANO_HIGH_RANK_ROLES = {int(role) for role in json.loads(os.getenv("ANO_HIGH_RANK_ROLES"))}
+    ANO_TITAN_ROLES = {int(role) for role in json.loads(os.getenv("ANO_TITAN_ROLES"))}
+    ANO_CHIEF_ROLES = {int(role) for role in json.loads(os.getenv("ANO_CHIEF_ROLES"))}
 
     # Channel ID for Titan chat, parsed from JSON (usually a number or list)
     TITAN_CHAT_CHANNEL_ID = json.loads(os.getenv("TITAN_CHAT_CHANNEL_ID"))
