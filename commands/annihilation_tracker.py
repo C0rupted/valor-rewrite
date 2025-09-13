@@ -157,7 +157,7 @@ class AnnihilationTracker(commands.Cog):
                 title="Annihilation Already Reported",
                 description=(
                     f"Annihilation is already set for <t:{old_ts}:f> (<t:{old_ts}:R>). "
-                    f"React with ✅ within 30s to overwrite with `{time_until}`."
+                    f"Confirm within 30s to overwrite with `{time_until}`."
                 ),
                 color=ANNI_EMBED_COLOR
             )
