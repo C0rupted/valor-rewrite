@@ -48,7 +48,7 @@ class Admin(commands.GroupCog, name="admin"):
         """
 
         # Permission check — only ANO chiefs can use this command
-        if not is_ANO_chief(interaction.user):
+        if not is_ANO_chief(interaction.user.roles):
             return await interaction.response.send_message(
                 embed=ErrorEmbed("You do not have permission to use this command."),
                 ephemeral=True  # Only visible to the command user

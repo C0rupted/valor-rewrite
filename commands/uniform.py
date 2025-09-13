@@ -46,7 +46,7 @@ class Uniform(commands.Cog):
         await interaction.response.defer()
 
         # Check if the user has permission to use this command (ANO member or testing mode)
-        if not is_ANO_member(interaction.user):
+        if not is_ANO_member(interaction.user.roles):
             return await interaction.followup.send(
                 embed=ErrorEmbed("Only ANO members can wear this uniform!")
             )

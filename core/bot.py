@@ -26,6 +26,7 @@ class ValorBot(commands.Bot):
         Initialize the ValorBot with no Discord intents and no default help command.
         """
         intents = discord.Intents.none()
+        intents.guilds = True  # Required for getting user roles
 
         super().__init__(
             command_prefix=None,  # Slash-only, no text prefix at all

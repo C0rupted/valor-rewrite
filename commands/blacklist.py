@@ -86,7 +86,7 @@ class Blacklist(commands.GroupCog, name="blacklist"):
         4. Insert/replace entry in blacklist table.
         """
         # Permission check
-        if not (is_ANO_titan_rank(interaction.user) or is_ANO_chief(interaction.user)):
+        if not (is_ANO_titan_rank(interaction.user.roles) or is_ANO_chief(interaction.user.roles)):
             return await interaction.response.send_message(
                 embed=ErrorEmbed("No Permissions"), ephemeral=True
             )
@@ -135,7 +135,7 @@ class Blacklist(commands.GroupCog, name="blacklist"):
         4. Delete from database.
         """
         # Permission check
-        if not (is_ANO_titan_rank(interaction.user) or is_ANO_chief(interaction.user)):
+        if not (is_ANO_titan_rank(interaction.user.roles) or is_ANO_chief(interaction.user.roles)):
             return await interaction.response.send_message(
                 embed=ErrorEmbed("No Permissions"), ephemeral=True
             )

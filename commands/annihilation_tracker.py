@@ -1,4 +1,4 @@
-import discord, time, json, os, re
+import discord, time, json, os, re, logging
 from discord import app_commands, Interaction, ButtonStyle, Message
 from discord.ext import commands
 from discord.ui import View, Button
@@ -107,7 +107,7 @@ class AnnihilationTracker(commands.Cog):
         await interaction.response.defer()
 
         # Permission check
-        if not is_ANO_high_rank(interaction.user):
+        if not is_ANO_high_rank(interaction.user.roles):
             return await interaction.followup.send(
                 embed=ErrorEmbed("You do not have permission to report an Annihilation time."),
                 ephemeral=True

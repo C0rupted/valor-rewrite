@@ -31,8 +31,12 @@ class Profile(commands.Cog):
         """
         Creates a profile card using PIL Image for the player using their stats and rankings.
         """
+        # Flag for warning that stats are API hidden
+        warn_api_hidden = False
+
         # Define some common colors for drawing on the image
         black = (0, 0, 0)
+        gray = (129, 129, 129)
         white = (255, 255, 255)
         red = (229, 83, 107)
         green = (87, 234, 128)
@@ -71,7 +75,7 @@ class Profile(commands.Cog):
         # Prepare to draw the player's character bust model on the profile
         tmp_path = f"/tmp/{username}_model.png"
         # Cache bust model locally for 24 hours to avoid repeated downloads
-        if not os.path.exists(tmp_path) or time.time() - os.path.getmtime(tmp_path) > 86400:
+        if not os.path.exists(tmp_path) or time.time() - os.path.getmtime(tmp_path) > 604800:
             headers = {"User-Agent": "valor-bot/1.0"}
             model = await request(f"https://visage.surgeplay.com/bust/{uuid}.png", headers=headers, return_type="image")
             with open(tmp_path, "wb") as f:
@@ -89,6 +93,13 @@ class Profile(commands.Cog):
         value = min(round((warcount / war_ranking[1]) * 142), 142)
         # Draw filled rectangle representing warcount progress bar
         draw.rectangle([(269, 221), (value + 269, 224)], red)
+
+        # Gray-out if their warcount tracking is hidden from API.
+        if data["restrictions"]["characterDataAccess"]:
+            section = img.crop((254, 83, 426, 266))
+            section = section.convert("L") # Convert to grayscale
+            img.paste(section, (254, 83))
+            warn_api_hidden = True
 
         # Draw guild XP rank abbreviation and progress bar (similar to warcount)
         draw.text((542, 161), gxp_ranking[0], green, rank_font, anchor="mm")
@@ -120,8 +131,9 @@ class Profile(commands.Cog):
                 draw.text((740, 209), "Player last seen:", white, text_font, anchor="ma")
                 draw.text((740, 229), datetime.fromisoformat(data["lastJoin"][:-1]).strftime("%H:%M  %m/%d/%Y"), white, text_font, anchor="ma")
             else:
-                draw.text((740, 209), "Last join date has", white, text_font, anchor="ma")
-                draw.text((740, 229), "been API hidden", white, text_font, anchor="ma")
+                draw.text((740, 209), "Last join date has", gray, text_font, anchor="ma")
+                draw.text((740, 229), "been API hidden", gray, text_font, anchor="ma")
+                warn_api_hidden = True
 
         # Extract leaderboard rankings from data and filter out hidden keys
         rankings = data["ranking"]
@@ -176,7 +188,8 @@ class Profile(commands.Cog):
                 draw.text((91 + (i * 120), 445), f"#{rank_place}", white, text_font, anchor="ma")
         else:
             # No rankings available - indicate data is hidden
-            draw.text((207, 389), "All rankings are API hidden.", white, text_font, anchor="ma")
+            draw.text((207, 389), "All rankings are API hidden.", gray, text_font, anchor="ma")
+            warn_api_hidden = True
 
         # Draw player's guild info and guild badge if available
         offset = 53  # Vertical offset for guild rank text if badge exists
@@ -223,10 +236,11 @@ class Profile(commands.Cog):
         else:
             # If any stats missing or data hidden, draw black rectangle and fallback message
             draw.rectangle([(623, 326), (823, 476)], black)  # Overwrite default stat labels
-            draw.text((723, 389), "Stats are API hidden.", white, text_font, anchor="ma")
+            draw.text((723, 389), "Stats are API hidden.", gray, text_font, anchor="ma")
+            warn_api_hidden = True
 
         # Return the completed PIL image object
-        return img
+        return img, warn_api_hidden
 
 
     @app_commands.command(name="profile", description="Display a profile card for a player")
@@ -250,7 +264,7 @@ class Profile(commands.Cog):
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 
         # Fetch player data from external API (Wynncraft)
-        data = await request(f"https://api.wynncraft.com/v3/player/{uuid}")
+        data = await request(f"https://api.wynncraft.com/v3/player/{uuid}?fullResult")
         if not data:
             return await interaction.followup.send(embed=ErrorEmbed("Error fetching player data."))
 
@@ -272,7 +286,7 @@ class Profile(commands.Cog):
         gxp_ranking = get_xp_rank(gxp_contrib)
 
         # Build the profile image asynchronously using gathered data
-        img = await self.build_profile_image(username, uuid, data, warcount, war_ranking, gxp_contrib, gxp_ranking)
+        img, warn_api_hidden = await self.build_profile_image(username, uuid, data, warcount, war_ranking, gxp_contrib, gxp_ranking)
         if not img:
             return await interaction.followup.send(embed=ErrorEmbed("Hidden player profile."))
 
@@ -282,8 +296,10 @@ class Profile(commands.Cog):
             img_binary.seek(0)
             file = File(fp=img_binary, filename="profile.png")
 
+            message = "Unhide your API!!!!!!!!!" if warn_api_hidden else ""
+
             # Send the profile image as a file attachment in the Discord followup response
-            await interaction.followup.send(file=file)
+            await interaction.followup.send(file=file, content=message)
 
 
 
