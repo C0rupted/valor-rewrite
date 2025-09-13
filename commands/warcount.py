@@ -128,12 +128,15 @@ WHERE UPPER({table_type}.class_type) IN ({','.join(select_class_in_parts)})
 GROUP BY uuid_name.uuid, player_stats.guild
 ORDER BY all_wars DESC;"""
         
-        # If range filtering is active, inject time constraints into the query
+        # Parse and validate the 'range' argument if provided
         if range:
-            query = query.replace(
-                "GROUP BY",
-                f"AND {table_type}.time >= {left} AND {table_type}.time <= {right} GROUP BY"
-            )
+            if range.strip().lower() == "all":
+                range = None # Uses rangeless logic to be correct
+            else:
+                range = await get_range_from_string(range, max_allowed_range=None)
+                if not range:
+                    return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
+                left, right = range
 
         # Execute the query
         res = await Database.fetch(query)
