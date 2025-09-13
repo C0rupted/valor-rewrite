@@ -23,14 +23,12 @@ class ValorBot(commands.Bot):
 
     def __init__(self):
         """
-        Initialize the ValorBot with full Discord intents and no default help command.
+        Initialize the ValorBot with no Discord intents and no default help command.
         """
-        intents = discord.Intents.all()
-        intents.guilds = True
-        intents.members = True
+        intents = discord.Intents.none()
 
         super().__init__(
-            command_prefix="stupidlylongstringthatnoonewilltypeout",  # Slash-only, no text prefix at all
+            command_prefix=None,  # Slash-only, no text prefix at all
             intents=intents,
             help_command=None,  # Disables the default text help command
             log_handler=None,   # Logging handled externally
