@@ -45,7 +45,7 @@ class HelpCog(commands.Cog):
         )
         embed.add_field(
             name="🛠️ Support",
-            value="Need help or found an issue? Create a ticket in our server.",
+            value="Need help or found an issue? Report it [here](https://discordapp.com/channels/535603929598394389/733842585931481138). (<#733842585931481138>)",
             inline=False
         )
 
