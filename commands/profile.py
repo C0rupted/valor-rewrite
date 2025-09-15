@@ -267,6 +267,7 @@ class Profile(commands.Cog):
         data = await request(f"https://api.wynncraft.com/v3/player/{uuid}?fullResult")
         if not data:
             return await interaction.followup.send(embed=ErrorEmbed("Error fetching player data."))
+        guild = await request(f"https://api.wynncraft.com/v3/guild/prefix/{data["guild"]["prefix"]}") if data.get("guild") else None
 
         # Query database for player's total warcount
         res = await Database.fetch("SELECT SUM(warcount) FROM cumu_warcounts WHERE uuid=%s", (uuid,))
@@ -279,9 +280,11 @@ class Profile(commands.Cog):
             SELECT MAX(xp)
             FROM ((SELECT xp FROM user_total_xps WHERE uuid=%s)
                   UNION ALL
-                  (SELECT SUM(delta) FROM player_delta_record WHERE guild='Titans Valor' AND uuid=%s AND label='gu_gxp')) A;
+                  (SELECT SUM(delta) FROM player_delta_record WHERE uuid=%s AND label='gu_gxp')) A;
         """, (uuid, uuid))
-        gxp_contrib = res[0]["MAX(xp)"] if res and res[0]["MAX(xp)"] else 0
+        res_contrib = res[0]["MAX(xp)"] if res and res[0]["MAX(xp)"] else 0
+        api_contrib = guild["members"][data["guild"]["rank"].lower()][data["username"]]["contributed"] if data.get("guild") else 0
+        gxp_contrib = max(res_contrib, api_contrib)
         # Determine guild XP rank based on contribution
         gxp_ranking = get_xp_rank(gxp_contrib)
 
