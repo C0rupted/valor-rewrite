@@ -216,9 +216,9 @@ class Map(commands.Cog):
             draw_label.rectangle([left, top, right, bottom], outline=border, width=2)
 
             # Compute text size and draw guild prefix centered with outline for readability
-            bbox = draw_label.textbbox((0, 0), prefix, font=font)
+            bbox = draw_label.textbbox((0, 0), prefix or "None", font=font)
             tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-            self.draw_text_with_outline(draw_label, (cx - tw/2, cy - th/2), prefix, font, fill=border)
+            self.draw_text_with_outline(draw_label, (cx - tw/2, cy - th/2), prefix or "None", font, fill=border)
 
         # Draw trading route connections as lines between territory centers
         for start, targets in terr_conns.items():
