@@ -75,6 +75,9 @@ async def show_total_progress(stats: dict, max_characters: int) -> str:
     sections.append(await section("Slaying Mini-Quests", stats["Slaying Mini-Quests"], 29 * max_characters, green))
     sections.append(await section("Gathering Mini-Quests", stats["Gathering Mini-Quests"], 96 * max_characters, green))
     sections.append(await section("Discoveries", stats["Discoveries"], (105 + 496) * max_characters, green))
+    sections.append(await section("World Events", stats["World Events"], 54 * max_characters, green))
+    sections.append(await section("Lootruns", stats["Lootruns"], 5 * max_characters, green))
+    sections.append(await section("Caves", stats["Caves"], 172 * max_characters, green))
     sections.append(await section("Unique Dungeons", stats["Unique Dungeon Completions"], 18 * max_characters, green))
     sections.append(await section("Unique Raids", stats["Unique Raid Completions"], 4 * max_characters, green))
 
@@ -129,6 +132,9 @@ class Completion(commands.Cog):
             "Slaying Mini-Quests": 0,
             "Gathering Mini-Quests": 0,
             "Discoveries": 0,
+            "World Events": 0,
+            "Lootruns": 0,
+            "Caves": 0,
             "Unique Dungeon Completions": 0,
             "Dungeon Completions": 0,
             "Unique Raid Completions": 0,
@@ -150,6 +156,12 @@ class Completion(commands.Cog):
                             val = sum(1 for q in quests if "Mini-Quest - Gather" in q)
                     elif stat == "Discoveries":
                         val = char.get("discoveries", 0)
+                    elif stat == "World Events":
+                        val = char.get("worldEvents", 0)
+                    elif stat == "Lootruns":
+                        val = char.get("lootruns", 0)
+                    elif stat == "Caves":
+                        val = char.get("caves", 0)
                     elif stat == "Unique Dungeon Completions":
                         val = len(char.get("dungeons", {}).get("list", []))
                     elif stat == "Unique Raid Completions":
