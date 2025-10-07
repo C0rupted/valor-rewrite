@@ -300,10 +300,9 @@ async def build_board(data: list[tuple[str, int]], page: int, is_guild_board: bo
             tag = tags[names.index(stat[1])]
             try:
                 model_img = Image.open(f"assets/icons/guilds/{tag}.png", 'r')
-                model_img = model_img.crop(model_img.getbbox())
             except FileNotFoundError:
                 # Use blank placeholder if guild icon missing
-                model_img = Image.new("RGBA", (54, 54))
+                model_img = Image.new("RGBA", (64, 64))
         else:
             try:
                 # Player bust cached image
