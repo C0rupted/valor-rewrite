@@ -48,10 +48,13 @@ class Warcount(commands.Cog):
 
         # Parse and validate the 'range' argument if provided
         if range:
-            range = await get_range_from_string(range, max_allowed_range=None)
-            if not range:
-                return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
-            left, right = range
+            if range.strip().lower() == "all":
+                range = None # Uses rangeless logic to be correct
+            else:
+                range = await get_range_from_string(range, max_allowed_range=None)
+                if not range:
+                    return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
+                left, right = range
 
         # Parse filters from comma-separated strings into lists
         guild_filter = [g.strip() for g in guilds.split(",")] if guilds else []
@@ -130,13 +133,10 @@ ORDER BY all_wars DESC;"""
         
         # Parse and validate the 'range' argument if provided
         if range:
-            if range.strip().lower() == "all":
-                range = None # Uses rangeless logic to be correct
-            else:
-                range = await get_range_from_string(range, max_allowed_range=None)
-                if not range:
-                    return await interaction.followup.send(embed=ErrorEmbed("Invalid range input"))
-                left, right = range
+            query = query.replace(
+                "GROUP BY",
+                f"AND {table_type}.time >= {left} AND {table_type}.time <= {right} GROUP BY"
+            )
 
         # Execute the query
         res = await Database.fetch(query)
