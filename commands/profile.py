@@ -197,7 +197,7 @@ class Profile(commands.Cog):
             try:
                 # Attempt to load guild badge icon from local assets folder
                 guild_badge = Image.open(f'assets/icons/guilds/{data["guild"]["prefix"]}.png')
-                guild_badge.resize((90, 90))
+                guild_badge = guild_badge.resize((90, 90))
                 img.paste(guild_badge, (459, 329), guild_badge)
             except FileNotFoundError:
                 # If no badge icon found, remove vertical offset to align text correctly
