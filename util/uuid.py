@@ -2,6 +2,7 @@ import asyncio, re
 
 from database import Database
 from util.requests import request
+from pymysql.err import IntegrityError
 
 
 
@@ -51,7 +52,14 @@ async def get_uuid_from_name(player: str) -> str | None:
     formatted = format_uuid(res["id"])
 
     # Cache in database for future use
-    await Database.fetch("INSERT INTO uuid_name (uuid, name) VALUES (%s, %s)", (formatted, player))
+    try:
+        await Database.fetch("INSERT INTO uuid_name (uuid, name) VALUES (%s, %s)", (formatted, player))
+    except IntegrityError as e:
+        # UUID already exists (user changed name), update the existing record
+        if e.args[0] == 1062:  # Duplicate entry error
+            await Database.fetch("UPDATE uuid_name SET name=%s WHERE uuid=%s", (player, formatted))
+        else:
+            raise
     return formatted
 
 
