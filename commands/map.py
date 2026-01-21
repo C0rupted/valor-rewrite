@@ -14,6 +14,9 @@ from util.requests import request
 with open("assets/map_regions.json") as f:
     map_regions = json.load(f)
 
+# Create reverse lookup: label -> key for efficient zone validation
+zone_label_to_key = {data["label"].lower(): key for key, data in map_regions.items()}
+
 
 
 class Map(commands.Cog):
@@ -25,6 +28,24 @@ class Map(commands.Cog):
     """
     def __init__(self, bot):
         self.bot = bot
+
+
+    def normalize_zone(self, zone_input: str) -> str | None:
+        """
+        Normalize a zone input (key or label) to its zone key.
+        
+        Args:
+            zone_input (str): Zone key or label (case-insensitive).
+            
+        Returns:
+            str | None: Normalized zone key, or None if invalid.
+        """
+        zone_lower = zone_input.lower()
+        # Check if it's already a valid key
+        if zone_lower in map_regions:
+            return zone_lower
+        # Check if it's a label
+        return zone_label_to_key.get(zone_lower)
 
 
     def to_full_map_coord(self, x_ingame, y_ingame, map_width, map_height):
@@ -100,13 +121,13 @@ class Map(commands.Cog):
 
 
     @app_commands.command(name="map", description="Show the live Wynncraft territory map, optionally filtered by guild or zone.")
-    @app_commands.describe(guild="Filter by guild tags (comma-separated)", zone="Optional region/zone name to crop to")
+    @app_commands.describe(guild="Filter by guild tags (comma-separated)", zone="Optional region/zone names to crop to (comma-separated)")
     @rate_limit_check()
     async def map(self, interaction: discord.Interaction, guild: str = None, zone: str = None):
         """
         Main command handler for the territory map.
 
-        Optionally filters territories by guild tag(s) and crops the map to a specific zone.
+        Optionally filters territories by guild tag(s) and crops the map to specific zone(s).
 
         Workflow:
         - Parse filters.
@@ -117,29 +138,42 @@ class Map(commands.Cog):
         - Draw labels with outlined text.
         - Draw trading route connections as lines.
         - Compose all layers into final image.
-        - Crop to zone if specified.
+        - Crop to zone(s) if specified.
         - Send the generated image as a Discord file.
 
         Args:
             interaction (discord.Interaction): Command interaction.
             guild (str, optional): Comma-separated guild tag filters.
-            zone (str, optional): Zone name to crop to.
+            zone (str, optional): Comma-separated zone names to crop to.
         """
         await interaction.response.defer()
 
         # Normalize guild tags to lowercase for filtering
         guild_tags = [tag.strip().lower() for tag in guild.split(",")] if guild else []
 
-        # Validate zone filter if provided
-        if zone:
-            if zone not in map_regions:
-                return await interaction.followup.send("Invalid zone.", ephemeral=True)
+        # Parse and validate zone filter(s) if provided
+        zones = [z.strip() for z in zone.split(",")] if zone else []
+        if zones:
+            normalized_zones = []
+            invalid_zones = []
+            
+            for z in zones:
+                normalized = self.normalize_zone(z)
+                if normalized:
+                    normalized_zones.append(normalized)
+                else:
+                    invalid_zones.append(z)
+            
+            if invalid_zones:
+                return await interaction.followup.send(f"Invalid zone(s): {', '.join(invalid_zones)}", ephemeral=True)
+            
+            zones = normalized_zones
 
         # Fetch live territory and guild color data from Wynntils Athena API
         try:
             terr_res = await request("https://athena.wynntils.com/cache/get/territoryList")
             guild_colors_res = await request("https://athena.wynntils.com/cache/get/guildListWithColors")
-            guild_color_lookup = {entry["_id"]: entry["color"] for entry in guild_colors_res.values()}
+            guild_color_lookup = {entry["id"]: entry["color"] for entry in guild_colors_res.values()}
         except:
             return await interaction.followup.send("Athena is down.", ephemeral=True)
 
@@ -242,7 +276,7 @@ class Map(commands.Cog):
         final = Image.alpha_composite(composed, label_layer)
 
         # Crop final image to specified guild's territories if specified
-        if guild_tags and not zone:
+        if guild_tags and not zones:
             if min_x != float("inf"):
                 final = final.crop((min_x - 50, min_y - 50, max_x + 50, max_y + 50))
             else:
@@ -251,13 +285,24 @@ class Map(commands.Cog):
                     )
                 )
 
-        # Crop final image to specified zone region if requested
-        if zone and zone in map_regions:
-            reg = map_regions[zone]["pos"]
-            x1, y1 = self.to_full_map_coord(reg[0], reg[1], map_width, map_height)
-            x2, y2 = self.to_full_map_coord(reg[2], reg[3], map_width, map_height)
-            # Add 50 pixel padding around crop region for context
-            final = final.crop((x1 - 50, y1 - 50, x2 + 50, y2 + 50))
+        # Crop final image to specified zone region(s) if requested
+        if zones:
+            # Calculate bounding box that encompasses all specified zones
+            crop_min_x, crop_min_y = float("inf"), float("inf")
+            crop_max_x, crop_max_y = float("-inf"), float("-inf")
+            
+            for zone_name in zones:
+                reg = map_regions[zone_name]["pos"]
+                x1, y1 = self.to_full_map_coord(reg[0], reg[1], map_width, map_height)
+                x2, y2 = self.to_full_map_coord(reg[2], reg[3], map_width, map_height)
+                
+                crop_min_x = min(crop_min_x, x1, x2)
+                crop_min_y = min(crop_min_y, y1, y2)
+                crop_max_x = max(crop_max_x, x1, x2)
+                crop_max_y = max(crop_max_y, y1, y2)
+            
+            # Add 50 pixel padding around combined crop region for context
+            final = final.crop((crop_min_x - 50, crop_min_y - 50, crop_max_x + 50, crop_max_y + 50))
 
         
         # Save image to bytes buffer and send as Discord file.
@@ -273,16 +318,39 @@ class Map(commands.Cog):
         Autocomplete handler for the zone parameter in the map command.
 
         Matches user input against known zone keys and labels for suggestions.
+        Supports comma-separated zones by only matching the currently-being-typed zone.
         """
+        # Split by comma to get already-entered zones and the current partial zone
+        parts = current.split(",")
+        current_zone = parts[-1].strip().lower()
+        
+        # Build set of already-entered zone keys
+        already_entered = set()
+        if len(parts) > 1:
+            for entered in parts[:-1]:
+                normalized = self.normalize_zone(entered.strip())
+                if normalized:
+                    already_entered.add(normalized)
+        
+        # Build prefix for display and value
+        prefix = ",".join(parts[:-1])
+        value_prefix = prefix + "," if prefix else ""
+        display_prefix = prefix + ", " if prefix else ""
+
+        # Generate suggestions
         autocomplete = []
-        current = current.lower()
+        for zone_key, zone_data in map_regions.items():
+            # Skip already-entered zones
+            if zone_key in already_entered:
+                continue
 
-        for zone in map_regions:
-            name = map_regions[zone]["label"]
-
-            # Suggest zones where the current input matches zone key or label (case-insensitive)
-            if (current in zone) or (current in name):
-                autocomplete.append(app_commands.Choice(name=name.title(), value=zone))
+            zone_label = zone_data["label"]
+            # Match if current input is in zone key or label
+            if current_zone in zone_key or current_zone in zone_label.lower():
+                autocomplete.append(app_commands.Choice(
+                    name=display_prefix + zone_label.title(),
+                    value=value_prefix + zone_key
+                ))
 
         return autocomplete
 
