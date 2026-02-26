@@ -130,7 +130,8 @@ class Profile(commands.Cog):
                 wrapper = textwrap.TextWrapper(width=13, max_lines=2, placeholder="")
                 rank = wrapper.wrap(text=rank)
 
-                if temp[0] in {"craftsman", "hunted", "ironman", "hardcore", "ultimate", "huic", "huich", "hic", "hich"}:
+                # temp fix for guild until wynn adds icon.
+                if temp[0] in {"craftsman", "hunted", "ironman", "hardcore", "ultimate", "huic", "huich", "hic", "hich", "guild"}:
                     rank_badge = Image.open(f"assets/icons/gamemodes/{temp[0]}.png")
                 else:
                     rank_badge = Image.open(await request(rank_badge_link, return_type="stream"))
