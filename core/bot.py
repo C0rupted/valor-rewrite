@@ -87,7 +87,8 @@ class ValorBot(commands.Bot):
             "listeners.command_logger",
             "listeners.errors",
             # Background services
-            "services.weekly_ticket_post"
+            "services.weekly_ticket_post",
+            "services.territory_tracker"
         ]
 
         for ext in extensions:
