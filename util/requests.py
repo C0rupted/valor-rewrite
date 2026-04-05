@@ -6,7 +6,8 @@ from requests.exceptions import RequestException
 
 # Default headers for HTTP requests
 DEFAULT_HEADERS = {
-    'User-Agent': 'ano_valor/0.0.0'
+    'User-Agent': 'ano_valor/0.0.0',
+    'Authorization': f"Bearer {os.environ.get('WYNN_API_KEY')}"
 }
 
 # Base URL for fetching player bust images by UUID or name
