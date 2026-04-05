@@ -40,6 +40,8 @@ class Config:
 
     # Channel ID for Titan chat, parsed from JSON (usually a number or list)
     TITAN_CHAT_CHANNEL_ID = json.loads(os.getenv("TITAN_CHAT_CHANNEL_ID"))
+    TERRITORY_TRACKER_CHANNEL_ID = json.loads(os.getenv("TERRITORY_TRACKER_CHANNEL_ID"))
+    ANO_TERRITORY_TRACKER_CHANNEL_ID = json.loads(os.getenv("ANO_TERRITORY_TRACKER_CHANNEL_ID"))
 
 
 

@@ -225,7 +225,10 @@ class Profile(commands.Cog):
                   (SELECT SUM(delta) FROM player_delta_record WHERE uuid=%s AND label='gu_gxp')) A;
         """, (uuid, uuid))
         res_contrib = res[0]["MAX(xp)"] if res and res[0]["MAX(xp)"] else 0
-        api_contrib = guild["members"][data["guild"]["rank"].lower()][data["username"]]["contributed"] if data.get("guild") else 0
+        try:
+            api_contrib = guild["members"][data["guild"]["rank"].lower()][data["username"]]["contributed"] if data.get("guild") else 0
+        except KeyError:
+            api_contrib = 0
         gxp_contrib = max(res_contrib, api_contrib)
         gxp_ranking = get_xp_rank(gxp_contrib)
 

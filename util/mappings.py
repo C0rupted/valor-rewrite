@@ -172,3 +172,34 @@ TERRITORY_DAMAGE_VALUES = [1000, 1400, 1800, 2200, 2600, 3000, 3400, 3800, 4200,
 TERRITORY_ATTACK_VALUES = [0.5, 0.75, 1.0, 1.25, 1.6, 2.0, 2.5, 3.0, 3.6, 3.8, 4.2, 4.7]
 TERRITORY_HEALTH_VALUES = [300_000, 450_000, 600_000, 750_000, 960_000, 1_200_000, 1_500_000, 1_860_000, 2_220_000, 2_580_000, 2_940_000, 3_300_000]
 TERRITORY_DEFENCE_VALUES = [0.10, 0.40, 0.55, 0.625, 0.70, 0.75, 0.79, 0.82, 0.84, 0.86, 0.88, 0.90]
+
+
+FFA_TERRITORIES = [
+    "Mycelial Expanse",
+    "Dodegar's Forge",
+    "Collapsed Bridge",
+    "Unicorn Trail",
+    "Guardian of the Forest",
+    "Big Mushroom Cave",
+    "Waterfall Cave",
+    "Paper Trail",
+    "Timeworn Arch",
+    "Pine Pillar Forest",
+    "Evergreen Outbreak",
+    "Burning Farm",
+    "Heavenly Ingress",
+    "Field of Life",
+    "Primal Fen",
+    "Azure Frontier",
+    "Path to Light",
+    "Otherworldly Monolith",
+    "Nexus of Light",
+    "Jungle Entrance",
+    "Herb Cave",
+    "Monte's Village",
+    "Troms Lake",
+    "Iboju Village",
+    "Entamis Village",
+    "Fountain of Youth",
+    "Delnar Manor"
+]
