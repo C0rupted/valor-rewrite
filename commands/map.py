@@ -61,8 +61,11 @@ class Map(commands.Cog):
         Returns:
             tuple: (x_canvas, y_canvas) pixel coordinates on the map image.
         """
-        x_canvas = (x_ingame + 2382) * map_width / 4034
-        y_canvas = (y_ingame + 6572) * map_height / 6414
+        # This is from the linear mapping crossing the two extreme points on the map.
+        # Ex: x: -2480 to 1650 (x_neg_ingame to x_pos_ingame)
+        # x_canvas = 0 + ((map_width - 1) - 0) / (x_pos_ingame - x_neg_ingame)) * (x_ingame - x_neg_ingame)
+        x_canvas = (x_ingame + 2480) * (map_width - 1) / 4130
+        y_canvas = (y_ingame + 6578) * (map_height - 1) / 6419
         return x_canvas, y_canvas
 
 
