@@ -5717,5 +5717,439 @@
             "Time Valley",
             "Sulphuric Hollow"
         ]
-    }
+    },
+	"Wellspring of Eternity": {
+		"resources": {
+			"emeralds": "1800",
+			"ore": "900",
+			"crops": "900",
+			"fish": "900",
+			"wood": "900"
+		},
+		"Trading Routes": [
+			"Fort Torann",
+			"The Frog Bog"
+		]
+  	},
+	"Fort Torann": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "3600",
+			"crops": "0",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Royal Gate",
+			"Wellspring of Eternity",
+			"Xima Valley",
+			"Forts in Fall"
+		]
+	},
+	"Xima Valley": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "3600",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Fort Torann"
+		]
+	},
+	"The Frog Bog": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "3600",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Wellspring of Eternity",
+			"Forts in Fall",
+			"Festival Grounds"
+		]
+	},
+	"Forts in Fall": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Fort Torann",
+			"Royal Dam",
+			"The Frog Bog",
+			"Espren",
+			"The Lumbermill"
+		]
+	},
+	"Royal Dam": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Forts in Fall",
+			"Lake Gitephe"
+		]
+	},
+	"Festival Grounds": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"The Frog Bog",
+			"Espren"
+		]
+	},
+	"Espren": {
+		"resources": {
+			"emeralds": "18000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Forts in Fall",
+			"Festival Grounds",
+			"Agricultural Sector",
+			"The Lumbermill"
+		]
+	},
+	"The Lumbermill": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Forts in Fall",
+			"Espren",
+			"Gates to Aelumia"
+		]
+	},
+	"Timasca": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "3600",
+			"crops": "0",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"University Campus",
+			"Residence Sector",
+			"Industrial Sector",
+			"Deforested Ecotone"
+		]
+	},
+	"Residence Sector": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "3600",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Timasca",
+			"Agricultural Sector"
+		]
+	},
+	"Agricultural Sector": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "3600",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Espren",
+			"Residence Sector",
+			"Water Processing Sector",
+			"Industrial Sector"
+		]
+	},
+	"Water Processing Sector": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "3600",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Industrial Sector",
+			"Agricultural Sector"
+		]
+	},
+	"Industrial Sector": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "3600",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Timasca",
+			"Agricultural Sector",
+			"Industrial Sector"
+		]
+	},
+	"Highlands Gate": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Verdant Grove",
+			"Alder Understory"
+		]
+	},
+	"Alder Understory": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Fort Tericen",
+			"Aldwell",
+			"Highlands Gate",
+			"Fort Hegea"
+		]
+	},
+	"Verdant Grove": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Contested District",
+			"Aldwell",
+			"Verdant Grove",
+			"Highlands Gate"
+		]
+	},
+	"Aldwell": {
+		"resources": {
+			"emeralds": "18000",
+			"ore": "0",
+			"crops": "3600",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Deforested Ecotone",
+			"Fort Hegea",
+			"Alder Understory",
+			"Verdant Grove"
+		]
+	},
+	"Fort Hegea": {
+		"resources": {
+			"emeralds": "1800",
+			"ore": "900",
+			"crops": "900",
+			"fish": "900",
+			"wood": "900"
+		},
+		"Trading Routes": [
+			"Alder Understory",
+			"Aldwell"
+		]
+	},
+	"Deforested Ecotone": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Timasca",
+			"Verdant Grove",
+			"Aldwell"
+		]
+	},
+	"Citadel's Shadow": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "3600",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Lake Gitephe",
+			"Gates to Aelumia",
+			"Fort Tericen"
+		]
+	},
+	"Lake Gitephe": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "3600",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Royal Dam",
+			"Citadel's Shadow",
+			"Hyloch"
+		]
+	},
+	"Hyloch": {
+		"resources": {
+			"emeralds": "18000",
+			"ore": "0",
+			"crops": "3600",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Lake Gitephe",
+			"Fort Tericen",
+			"Lake Rieke"
+		]
+	},
+	"Fort Tericen": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"Alder Understory",
+			"Citadel's Shadow",
+			"Hyloch",
+			"Lake Rieke",
+			"Feuding Houses"
+		]
+	},
+	"Lake Rieke": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "3600",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Hyloch",
+			"Frosty Outpost",
+			"Fort Tericen"
+		]
+	},
+	"Frosty Outpost": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "3600",
+			"crops": "0",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Lake Rieke",
+			"Feuding Houses"
+		]
+	},
+	"Feuding Houses": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "3600",
+			"crops": "0",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Frosty Outpost",
+			"Fort Tericen"
+		]
+	},
+	"Royal Barracks": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "0",
+			"wood": "3600"
+		},
+		"Trading Routes": [
+			"The Lumbermill",
+			"Gates to Aelumia",
+			"University Campus"
+		]
+	},
+	"Gates to Aelumia": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "0",
+			"fish": "3600",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Royal Barracks",
+			"Citadel's Shadow",
+			"Contested District"
+		]
+	},
+	"Contested District": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "3600",
+			"crops": "0",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Verdant Grove",
+			"University Campus",
+			"Gates to Aelumia"
+		]
+	},
+	"University Campus": {
+		"resources": {
+			"emeralds": "9000",
+			"ore": "0",
+			"crops": "3600",
+			"fish": "0",
+			"wood": "0"
+		},
+		"Trading Routes": [
+			"Timasca",
+			"Contested District",
+			"Royal Barracks"
+		]
+	}
 }
