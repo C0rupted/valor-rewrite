@@ -3,11 +3,12 @@ import requests, logging, aiohttp, asyncio, os, time
 from io import BytesIO
 from requests.exceptions import RequestException
 
+from core.config import config
+
 
 # Default headers for HTTP requests
 DEFAULT_HEADERS = {
     'User-Agent': 'ano_valor/0.0.0',
-    'Authorization': f"Bearer {os.environ.get('WYNN_API_KEY')}"
 }
 
 # Base URL for fetching player bust images by UUID or name
@@ -15,7 +16,7 @@ BUST_API_URL = "https://visage.surgeplay.com/bust/"
 
 
 
-async def request(url: str, headers: dict = None, return_type: str = "json"):
+async def request(url: str, headers: dict = None, return_type: str = "json", use_wynn_auth: bool = False):
     """
     Perform a synchronous HTTP GET request wrapped in an async function.
 
@@ -29,6 +30,9 @@ async def request(url: str, headers: dict = None, return_type: str = "json"):
     """
     # Merge default headers with user-provided headers
     all_headers = {**DEFAULT_HEADERS, **(headers or {})}
+
+    if use_wynn_auth:
+        all_headers['Authorization'] = f"Bearer {config.WYNN_API_KEY}"
 
     try:
         # Synchronous GET request using requests library

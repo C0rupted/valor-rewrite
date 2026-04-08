@@ -25,6 +25,8 @@ class Config:
 
     # API key for Hypixel API
     HYPIXEL_API_KEY = os.getenv("HYPIXEL_API_KEY")
+    # API key for Wynncraft API
+    WYNN_API_KEY = os.getenv("WYNN_API_KEY")
 
     # Guild IDs where ANO commands are enabled (stored as JSON array in env)
     ANO_COMMANDS_GUILD_IDS = json.loads(os.getenv("ANO_COMMANDS_GUILD_IDS"))

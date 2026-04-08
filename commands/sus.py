@@ -63,7 +63,7 @@ class Sus(commands.Cog):
             return await interaction.followup.send(embed=ErrorEmbed("Player has never logged onto Hypixel before?! That's a bit sus..."))
 
         # Fetch Wynncraft player data from Wynncraft API using dashed UUID
-        wynn_data = await request(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult")
+        wynn_data = await request(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult", use_wynn_auth=True)
 
         # Check if 'username' key exists in response to verify successful fetch
         try:

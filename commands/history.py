@@ -100,7 +100,7 @@ class History(commands.Cog):
 
         # API enrichment for most recent guild
         try:
-            api_data = await request(f"https://api.wynncraft.com/v3/player/{username}?fullResult")
+            api_data = await request(f"https://api.wynncraft.com/v3/player/{username}?fullResult", use_wynn_auth=True)
             guild_info = api_data.get("guild")
             if guild_info:
                 api_guild = guild_info.get("name")

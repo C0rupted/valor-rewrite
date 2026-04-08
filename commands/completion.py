@@ -101,7 +101,7 @@ class Completion(commands.Cog):
         await interaction.response.defer()
 
         # Fetch full player data from Wynncraft API
-        data = await request(f"https://api.wynncraft.com/v3/player/{username}?fullResult")
+        data = await request(f"https://api.wynncraft.com/v3/player/{username}?fullResult", use_wynn_auth=True)
         characters = data["characters"]  # Dictionary of all characters for the player
         rank = data["supportRank"]       # Player rank (affects max allowed characters)
 

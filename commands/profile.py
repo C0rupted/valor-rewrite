@@ -209,7 +209,7 @@ class Profile(commands.Cog):
         if not uuid:
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 
-        data = await request(f"https://api.wynncraft.com/v3/player/{uuid}?fullResult")
+        data = await request(f"https://api.wynncraft.com/v3/player/{uuid}?fullResult", use_wynn_auth=True)
         if not data:
             return await interaction.followup.send(embed=ErrorEmbed("Error fetching player data."))
         guild = await request(f"https://api.wynncraft.com/v3/guild/prefix/{data['guild']['prefix']}") if data.get("guild") else None
