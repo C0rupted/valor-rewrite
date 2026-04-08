@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from core.antispam import rate_limit_check
 from util.embeds import ErrorEmbed
-from util.mappings import EMOJI_MAP, ITEM_TO_EMOJI_MAP, ASPECT_TO_EMOJI_MAP
+from util.mappings import EMOJI_MAP, ITEM_TO_EMOJI_MAP, ASPECT_TO_EMOJI_MAP, WARD_TO_EMOJI_MAP
 from util.requests import request_with_csrf
 
 
@@ -24,7 +24,9 @@ class Pools(commands.Cog):
         "canyon_of_the_lost": "Canyon of the Lost",
         "corkus": "Corkus",
         "sky_islands": "Sky Islands",
-        "molten_heights": "Molten Heights"
+        "molten_heights": "Molten Heights",
+        "fruma_east": "Fruma East",
+        "fruma_west": "Fruma West"
     }
 
     LOOT_POOL_API_MAP = {
@@ -32,21 +34,25 @@ class Pools(commands.Cog):
         "canyon_of_the_lost": "Canyon",
         "corkus": "Corkus",
         "sky_islands": "Sky",
-        "molten_heights": "Molten"
+        "molten_heights": "Molten",
+        "fruma_east": "FrumaEast",
+        "fruma_west": "FrumaWest"
     }
 
     ASPECT_POOL_NAME_MAP = {
         "tna": "The Nameless Anomaly",
         "tcc": "The Canyon Colossus",
         "nol": "Nexus of Light",
-        "notg": "Nest of The Grootslangs"
+        "notg": "Nest of The Grootslangs",
+        "twp": "The Wartorn Palace"
     }
 
     ASPECT_POOL_API_MAP = {
         "tna": "TNA",
         "tcc": "TCC",
         "nol": "NOL",
-        "notg": "NOTG"
+        "notg": "NOTG",
+        "twp": "TWP"
     }
 
     # Base API URLs and resource URLs
@@ -89,10 +95,12 @@ class Pools(commands.Cog):
                 mythics = pool.get("Mythic", [])
 
                 if shiny:
-                    icon = EMOJI_MAP[ITEM_TO_EMOJI_MAP[shiny["Item"]]]
+                    icon = EMOJI_MAP.get(ITEM_TO_EMOJI_MAP.get(shiny['Item']), "")
                     field += f"- {EMOJI_MAP['shiny']}{icon} **Shiny** {shiny['Item']} (Tracker: {shiny['Tracker']})\n"
+
                 for item in mythics:
-                    icon = EMOJI_MAP[ITEM_TO_EMOJI_MAP[item]]
+                    emoji_id = ITEM_TO_EMOJI_MAP.get(item) or WARD_TO_EMOJI_MAP.get(item) or ""
+                    icon = EMOJI_MAP.get(emoji_id, "")
                     field += f"- {icon} {item}\n"
 
                 embed.add_field(name=f"{name} Mythics", value=field or "None", inline=False)
@@ -118,10 +126,11 @@ class Pools(commands.Cog):
         # Format shiny and mythics
         text = ""
         if shiny:
-            icon = EMOJI_MAP[ITEM_TO_EMOJI_MAP[shiny['Item']]]
+            icon = EMOJI_MAP.get(ITEM_TO_EMOJI_MAP.get(shiny['Item']), "")
             text += f"- {EMOJI_MAP['shiny']}{icon} **Shiny** {shiny['Item']} (Tracker: {shiny['Tracker']})\n"
         for item in mythics:
-            icon = EMOJI_MAP[ITEM_TO_EMOJI_MAP[item]]
+            emoji_id = ITEM_TO_EMOJI_MAP.get(item) or WARD_TO_EMOJI_MAP.get(item) or ""
+            icon = EMOJI_MAP.get(emoji_id, "")
             text += f"- {icon} {item}\n"
         embed.add_field(name="Mythics", value=text or "None", inline=False)
 
@@ -200,7 +209,8 @@ class Pools(commands.Cog):
                 raid = data["Loot"][self.ASPECT_POOL_API_MAP[key]]
                 text = ""
                 for item in raid.get("Mythic", []):
-                    icon = EMOJI_MAP.get(ASPECT_TO_EMOJI_MAP.get(data['Icon'][item]), "")
+                    emoji_id = ASPECT_TO_EMOJI_MAP.get(data['Icon'][item]) or WARD_TO_EMOJI_MAP.get(item) or ""
+                    icon = EMOJI_MAP.get(emoji_id, "")
                     text += f"- {icon} {item}\n"
 
                 embed.add_field(name=f"{name} Mythic Aspects", value=text or "None", inline=False)
@@ -222,9 +232,10 @@ class Pools(commands.Cog):
         # Add fields for each rarity type with formatted items
         for rarity in ("Mythic", "Fabled", "Legendary"):
             items = raid_data.get(rarity, [])
-            field = "\n".join(
-                f"- {EMOJI_MAP.get(ASPECT_TO_EMOJI_MAP.get(data['Icon'][item]), "")} {item}" for item in items
-            )
+            field = ""
+            for item in items:
+                emoji_id = ASPECT_TO_EMOJI_MAP.get(data['Icon'][item]) or WARD_TO_EMOJI_MAP.get(item) or ""
+                field += f"- {EMOJI_MAP.get(emoji_id, '')} {item}\n"
             embed.add_field(name=f"{rarity} Aspects", value=field or "None", inline=False)
 
         embed.set_thumbnail(url=self.ASPECT_ICON_URL)

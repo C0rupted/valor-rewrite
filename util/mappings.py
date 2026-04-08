@@ -57,7 +57,17 @@ ITEM_TO_EMOJI_MAP = {
     "Pure": "wandmulti1",
     "Corkian Insulator": "corkianinsulator", 
     "Corkian Simulator": "corkiansimulator",
-    "Inferno": "daggerfire3"
+    "Inferno": "daggerfire3",
+    "Restitution": "spearthunder3",
+    "Eschaton": "bowfire3",
+    "Halcyon": "wandmulti3",
+    "Transfiguration": "relikair3",
+    "Vengeance": "daggerthunder3",
+    "Ascendancy": "spearfire3",
+    "Revolution": "bowair3",
+    "Riptide": "wandwater3",
+    "Architect": "daggerearth3",
+    "Fate": "relikearth3"
 }
 
 # Maps aspect image filenames to emoji keys for class aspects
@@ -72,6 +82,20 @@ ASPECT_TO_EMOJI_MAP = {
     "aspect_shaman.gif": "shamanaspect",
     "aspect_assassin.gif": "assassinaspect",
     "aspect_archer.gif": "archeraspect",
+}
+
+# Maps ward names  to emoji keys for wards
+WARD_TO_EMOJI_MAP = {
+    "Black Ward": "blackward",
+    "Blue Ward": "blueward",
+    "Cyan Ward": "cyanward",
+    "Green Ward": "greenward",
+    "Orange Ward": "orangeward",
+    "Pink Ward": "pinkward",
+    "Purple Ward": "purpleward",
+    "Red Ward": "redward",
+    "White Ward": "whiteward",
+    "Yellow Ward": "yellowward"
 }
 
 # Maps emoji keys to the actual Discord emoji strings
@@ -121,7 +145,17 @@ EMOJI_MAP = {
     "mageaspect": "<:mageaspect:1373982896250945597>",
     "shamanaspect": "<:shamanaspect:1373982898352295976>",
     "warrioraspect": "<:warrioraspect:1373982900386791454>",
-    "le": "<:le:1400002600346189937>"
+    "le": "<:le:1400002600346189937>",
+    "blackward": "<:blackward:1491274264769462282>",
+    "blueward": "<:blueward:1491274291206033438>",
+    "cyanward": "<:cyanward:1491274323703631872>",
+    "greenward": "<:greenward:1491274356007895152>",
+    "orangeward": "<:orangeward:1491274385376542862>",
+    "pinkward": "<:pinkward:1491274409443594240>",
+    "purpleward": "<:purpleward:1491274436597514280>",
+    "redward": "<:redward:1491274467652145247>",
+    "whiteward": "<:whiteward:1491274495363911862>",
+    "yellowward": "<:yellowward:1491274521833898024>"
 }
 
 # UI-specific emojis used for navigation or UI elements
