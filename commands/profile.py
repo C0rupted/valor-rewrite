@@ -108,14 +108,16 @@ class Profile(commands.Cog):
                 if rank in {"hardcoreLegacyLevel"}:
                     rankings.pop(rank)
 
-            top_rank_keys = sorted(rankings, key=rankings.get)[:3]
+            sorted_rank_keys = sorted(rankings, key=rankings.get)
+            # temporariy drop NASrPlayers because its broken atm
+            sorted_rank_keys = [key for key in sorted_rank_keys if key != "NASrPlayers"]
+            top_rank_keys = sorted_rank_keys[:3]
             top_rankings = {}
             for key in top_rank_keys:
                 top_rankings[key] = rankings[key]
 
             for i, key in enumerate(top_rank_keys):
                 temp = [s for s in re.split("([A-Z][^A-Z]*)", key) if s]
-
                 rank_badge_link = f"https://cdn.wynncraft.com/nextgen/leaderboard/icons/{temp[0]}.webp?height=50"
                 rank_place = rankings[key]
 
