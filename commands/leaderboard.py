@@ -205,9 +205,8 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
 
 
     @app_commands.command(name="season_rating", description="Guild Season rating leaderboard")
-    @app_commands.describe(season="Pick a season to see its leaderboard (defaults to current season)")
     @rate_limit_check()
-    async def season_ratings(self, interaction: discord.Interaction, season: int = None):
+    async def season_ratings(self, interaction: discord.Interaction):
         """
         Fetch and display the guild season rating leaderboard.
 
@@ -217,31 +216,26 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
         """
         await interaction.response.defer()
 
-        # Get current season number if not provided
-        if not season:
-            season = await get_current_season()
-            season = season[6:]  # Strip prefix to get season number (like "season26" -> "26")
-
-        # Validate season number input
-        try:
-            season_num = int(season)
-        except ValueError:
-            return await interaction.followup.send(embed=ErrorEmbed("You must provide a valid season number."))
-
-        if season_num < 25:
-            return await interaction.followup.send(embed=ErrorEmbed("Season rating leaderboards are not tracked for before Season 25."))
+        season = await get_current_season()
+        season_num = season[6:]  # Strip prefix to get season number (like "season26" -> "26")
 
         # Fetch data from SR API
-        data = await request(f"https://raw.githubusercontent.com/C0rupted/wynncraft-sr-api/refs/heads/master/season-{season_num}.json")
-        if not data:
+        res = await request("https://nori.fish/api/database/guild")
+        if not res:
             return await interaction.followup.send(embed=ErrorEmbed("Could not fetch season rating data."))
 
+        ratings = []
         # Convert to list of (guild_name, rating) and sort descending by rating
-        ratings = [[guild["name"], int(guild["rating"])] for guild in data]
-        ratings.sort(key=lambda g: g[1], reverse=True)
+        for guild, data in res.items():
+            ratings.append({
+                "guild": guild,
+                "rating": data.get("sr", 0)
+            })
 
-        # Format rows with thousands separator for display
-        rows = [[name, f"{rating:,}"] for name, rating in ratings]
+        ratings.sort(key=lambda x: x["rating"], reverse=True)
+
+        #format rows and use , to separate thousands for better readability
+        rows = [(r["guild"], f"{r['rating']:,}") for r in ratings]
 
         # Create a guild leaderboard BoardView with headers
         view = BoardView(
