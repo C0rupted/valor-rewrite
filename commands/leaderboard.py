@@ -228,7 +228,7 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
         # Convert to list of (guild_name, rating) and sort descending by rating
         for guild, data in res.items():
             ratings.append({
-                "guild": guild,
+                "guild": data.get("name", "Unknown Guild"),
                 "rating": data.get("sr", 0)
             })
 
