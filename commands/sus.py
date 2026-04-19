@@ -36,7 +36,7 @@ class Sus(commands.Cog):
             id = username
             name = await get_name_from_uuid(username)
         elif input_type == "name":
-            id = await get_uuid_from_name(username)
+            id = await get_uuid_from_name(username, interaction)
             name = username
         else:
             return await interaction.followup.send(embed=ErrorEmbed("Invalid input."))
@@ -53,14 +53,14 @@ class Sus(commands.Cog):
         hypixel_join = None
         try:
             # If successful and player data exists, get first login timestamp (convert ms to seconds)
-            if hypixel_data["success"] and hypixel_data["player"] and hypixel_data["player"]["firstLogin"]:
+            if hypixel_data and hypixel_data["success"] and hypixel_data["player"] and hypixel_data["player"]["firstLogin"]:
                 hypixel_join = float(int(hypixel_data["player"]["firstLogin"] / 1000))
             else:
                 # If player data missing or unsuccessful, inform user of Hypixel API issue
-                return await interaction.followup.send(embed=ErrorEmbed("Player has never logged onto Hypixel before?! That's a bit sus..."))
+                hypixel_join = time.time()
         except KeyError:
             # Catch key errors from malformed response and notify
-            return await interaction.followup.send(embed=ErrorEmbed("Player has never logged onto Hypixel before?! That's a bit sus..."))
+            hypixel_join = time.time()
 
         # Fetch Wynncraft player data from Wynncraft API using dashed UUID
         wynn_data = await request(f"https://api.wynncraft.com/v3/player/{dashed_uuid}?fullResult", use_wynn_auth=True)

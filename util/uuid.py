@@ -1,4 +1,4 @@
-import asyncio, re
+import asyncio, re, discord
 
 from database import Database
 from util.requests import request
@@ -21,7 +21,7 @@ def format_uuid(raw: str) -> str:
 
 
 
-async def get_uuid_from_name(player: str) -> str | None:
+async def get_uuid_from_name(player: str, interaction: discord.Interaction | None = None) -> str | None:
     """
     Fetch the UUID for a given Minecraft player name.
 
@@ -39,7 +39,30 @@ async def get_uuid_from_name(player: str) -> str | None:
         return None
 
     # Query cached UUID from database
-    result = await Database.fetch("SELECT uuid FROM uuid_name WHERE name=%s LIMIT 1", (player,))
+    result = await Database.fetch("SELECT uuid FROM uuid_name WHERE name=%s", (player,))
+    if result and interaction and len(result) > 1:
+        select_view = discord.ui.View()
+        select = discord.ui.Select(
+            placeholder=f"Multiple matches found for {player}. Pick one...",
+            options=[discord.SelectOption(label=result[i]["uuid"]) for i in range(len(result))]
+        )
+
+        uuid = ""
+        async def callback(select_interaction: discord.Interaction):
+            nonlocal uuid
+            uuid = select.values[0]
+            await select_interaction.response.defer()
+            await select_interaction.message.delete()
+            select_view.stop()
+
+        select.callback = callback
+        select_view.add_item(select)
+
+        await interaction.followup.send(f"Multiple UUIDs found for '{player}'. Please select one:", view=select_view, ephemeral=True)
+
+        await select_view.wait()
+        return uuid
+
     if result:
         return result[0]["uuid"]
 

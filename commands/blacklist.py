@@ -99,7 +99,7 @@ class Blacklist(commands.GroupCog, name="blacklist"):
 
         # Convert username to UUID
         try:
-            uuid = await get_uuid_from_name(username)
+            uuid = await get_uuid_from_name(username, interaction)
         except:
             return await interaction.response.send_message(
                 embed=ErrorEmbed("Can't add player (Player doesn't exist?)"), ephemeral=True
@@ -147,7 +147,7 @@ class Blacklist(commands.GroupCog, name="blacklist"):
             )
 
         # Convert username to UUID and delete from database
-        uuid = await get_uuid_from_name(username)
+        uuid = await get_uuid_from_name(username, interaction)
         await Database.execute(
             "DELETE FROM player_blacklist WHERE uuid = %s",
             (uuid,)
@@ -182,7 +182,7 @@ class Blacklist(commands.GroupCog, name="blacklist"):
         await interaction.response.defer()
 
         # Convert username to UUID if needed
-        uuid = await get_uuid_from_name(username) if "-" not in username else username
+        uuid = await get_uuid_from_name(username, interaction) if "-" not in username else username
         username = await get_name_from_uuid(uuid)
 
         # Look up blacklist entry

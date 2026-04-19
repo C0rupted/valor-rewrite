@@ -204,7 +204,7 @@ class Profile(commands.Cog):
         if input_type == "uuid":
             uuid = username
         elif input_type == "name":
-            uuid = await get_uuid_from_name(username)
+            uuid = await get_uuid_from_name(username, interaction)
         else:
             return await interaction.followup.send(embed=ErrorEmbed("Invalid input."))
 
