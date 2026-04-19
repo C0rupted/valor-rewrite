@@ -35,7 +35,7 @@ class History(commands.Cog):
         """
         await interaction.response.defer()
 
-        uuid = await get_uuid_from_name(username)
+        uuid = await get_uuid_from_name(username, interaction)
         if not uuid:
             return await interaction.followup.send(embed=ErrorEmbed("Player not found."))
 

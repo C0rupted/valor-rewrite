@@ -58,7 +58,7 @@ class Admin(commands.GroupCog, name="admin"):
         await interaction.response.defer()
 
         # Convert the provided username into a UUID
-        uuid = await get_uuid_from_name(username)
+        uuid = await get_uuid_from_name(username, interaction)
         if not uuid:
             return await interaction.followup.send(
                 embed=ErrorEmbed("Could not find UUID for this username.")
