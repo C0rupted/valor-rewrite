@@ -136,7 +136,11 @@ class Profile(commands.Cog):
                 if temp[0] in {"craftsman", "hunted", "ironman", "hardcore", "ultimate", "huic", "huich", "hic", "hich", "guild"}:
                     rank_badge = Image.open(f"assets/icons/gamemodes/{temp[0]}.png")
                 else:
-                    rank_badge = Image.open(await request(rank_badge_link, return_type="stream"))
+                    image = await request(rank_badge_link, return_type="stream")
+                    if image:
+                        rank_badge = Image.open(image)
+                    else:
+                        rank_badge = Image.new("RGBA", (48, 48), (0, 0, 0, 0)) # transparent placeholder
 
                 for x, line in enumerate(rank):
                     draw.text((91 + (i * 120), 335 + (x * 20)), line, white, text_font, anchor="ma")
