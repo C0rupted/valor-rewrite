@@ -217,6 +217,9 @@ class Leaderboard(commands.GroupCog, name="leaderboard"):
         await interaction.response.defer()
 
         season = await get_current_season()
+        if not season:
+            return await interaction.followup.send(embed=ErrorEmbed("Could not determine the current season."))
+
         season_num = season[6:]  # Strip prefix to get season number (like "season26" -> "26")
 
         # Fetch data from SR API

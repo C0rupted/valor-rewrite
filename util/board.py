@@ -299,22 +299,22 @@ async def build_board(data: list[tuple[str, int]], page: int, is_guild_board: bo
         if is_guild_board:
             tag = tags[names.index(stat[1])]
             try:
-                model_img = Image.open(f"assets/icons/guilds/{tag}.png", 'r')
+                model_img = Image.open(f"assets/icons/guilds/{tag}.png", 'r').convert("RGBA")
             except FileNotFoundError:
                 # Use blank placeholder if guild icon missing
                 model_img = Image.new("RGBA", (64, 64))
         else:
             try:
                 # Player bust cached image
-                model_img = Image.open(f"/tmp/{stat[1]}_model.png", 'r')
+                model_img = Image.open(f"/tmp/{stat[1]}_model.png", 'r').convert("RGBA")
             except Exception as e:
                 # Fallback unknown image with error logged
-                model_img = Image.open(f"assets/unknown_model.png", 'r')
+                model_img = Image.open(f"assets/unknown_model.png", 'r').convert("RGBA")
                 print(f"Error loading image: {e}")
 
         # Resize icon to 64x64 and paste
         model_img = model_img.resize((64, 64))
-        board.paste(model_img, (model_margin, height), model_img)
+        board.paste(model_img, (model_margin, height), model_img.getchannel("A"))
 
         # Draw rank, name, and stat value text
         draw.text((rank_margin, height + 22), "#" + str(stat[0]), font=font)
@@ -392,20 +392,20 @@ async def build_warcount_board(
         if is_guild_board:
             tag = tags[names.index(row[1])]
             try:
-                model_img = Image.open(f"assets/icons/guilds/{tag}.png", 'r')
+                model_img = Image.open(f"assets/icons/guilds/{tag}.png", 'r').convert("RGBA")
                 model_img = model_img.crop(model_img.getbbox())
             except FileNotFoundError:
                 model_img = Image.new("RGBA", (54, 54))
         else:
             try:
-                model_img = Image.open(f"/tmp/{row[1]}_model.png", 'r')
+                model_img = Image.open(f"/tmp/{row[1]}_model.png", 'r').convert("RGBA")
             except Exception as e:
-                model_img = Image.open(f"assets/unknown_model.png", 'r')
+                model_img = Image.open(f"assets/unknown_model.png", 'r').convert("RGBA")
                 print(f"Error loading image: {e}")
 
         # Resize and paste the icon (54x54) slightly above y
         model_img = model_img.resize((54, 54))
-        img.paste(model_img, (84, int(y) - 29), model_img)
+        img.paste(model_img, (84, int(y) - 29), model_img.getchannel("A"))
 
         # Draw total warcount (middle-middle aligned)
         draw.text((445, y), row[2], "white", total_font, anchor="mm")
@@ -435,9 +435,8 @@ async def build_warcount_board(
         i += 1
 
     # Save rendered image to bytes buffer and wrap in Discord file
-    with io.BytesIO() as img_binary:
-        img.save(img_binary, 'PNG')
-        img_binary.seek(0)
-        file = discord.File(fp=img_binary, filename="board.png")
+    img_binary = io.BytesIO()
+    img.save(img_binary, 'PNG')
+    img_binary.seek(0)
 
-    return file
+    return discord.File(fp=img_binary, filename="board.png")
